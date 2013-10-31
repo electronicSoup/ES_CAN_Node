@@ -16,9 +16,8 @@ const char boot_serial[14] __attribute__ ((space(prog),address(0x284)));
 // Application Info  BOOTCODE_SIZE
 //
 const char app_manufacturer[24] __attribute__ ((space(prog),address(0x79F8))) = "electronicSoup";
-const char app_model[24] __attribute__ ((space(prog),address(0x7a10))) = "CAN Bus Node";
-const char app_description[24]  __attribute__ ((space(prog),address(0x7a28))) = "CAN Development Board";
-const char app_version[10]  __attribute__ ((space(prog),address(0x7a40))) = "1.0";
-const char app_uri[50]  __attribute__ ((space(prog),address(0x7a4a)))  = "http://www.electronicsoup.com/";
+const char app_description[24]  __attribute__ ((space(prog),address(0x7a10))) = "CANBus Node OS";
+const char app_version[10]  __attribute__ ((space(prog),address(0x7a28))) = "1.0";
+const char app_uri[50]  __attribute__ ((space(prog),address(0x7a32)))  = "http://www.electronicsoup.com/";
 
 #endif
