@@ -44,10 +44,10 @@ void err(char *string)
 int main(void)
 {
     baud_rate_t baudRate;
-
+#if 0
     HEARTBEAT_LED_DIRECTION = OUTPUT_PIN;
     heartbeat_off((BYTE *)NULL);
-
+#endif
     init_timer();
 
     /**

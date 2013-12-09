@@ -10,7 +10,40 @@
 #define INPUT_PIN 1
 #define OUTPUT_PIN 0
 
-#if (cpu == PIC24FJ256GB110)
+#if (cpu == PIC24FJ256GB106)
+
+#define NO_HEARTBEAT
+
+
+    /*
+     *  PINS on my CAN expansion board
+     *
+     *  RD10 - SCK
+     *  RD9  - SO  (Pin 14 of 18 DIP 2515)
+     *  RD8  - SI  (Pin 15 of 18 DIP 2515)
+     *  RD7  - /EEPROM CS
+     *  RD6 - /CAN CS
+     *  RD0 - /CAN INT
+     */
+
+    //  RD0  - /CAN INT
+    #define CAN_INTERRUPT_PIN_DIRECTION    TRISDbits.TRISD0
+    #define CAN_INTERRUPT                  PORTDbits.RD0
+    #define CAN_Interrupt()                (CAN_INTERRUPT == 0)
+
+    //  RA15 - /CS
+    #define CAN_CS_PIN_DIRECTION    TRISDbits.TRISD6
+    #define CAN_CS                  LATDbits.LATD6
+    #define CAN_Select()            CAN_CS = 0
+    #define CAN_DeSelect()          CAN_CS = 1
+
+     //  RD10 - SCK
+     //  RD9  - SO
+     //  RD8  - SI
+    #define CAN_SPI_SCK_DIRECTION   TRISDbits.TRISD10
+    #define CAN_SPI_SO_DIRECTION    TRISDbits.TRISD9
+    #define CAN_SPI_SI_DIRECTION    TRISDbits.TRISD8
+#elif (cpu == PIC24FJ256GB110)
     /*
      *  PINS on my CAN expansion board
      *
@@ -33,13 +66,6 @@
     #define CAN_CS                  LATAbits.LATA15
     #define CAN_Select()            CAN_CS = 0
     #define CAN_DeSelect()          CAN_CS = 1
-
-
-
-
-
-
-
 
     /*
      * LED is on RB9
