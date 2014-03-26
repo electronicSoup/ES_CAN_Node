@@ -11,12 +11,13 @@
 //#include "USB/usb_function_cdc.h"
 
 #include "os_api.h"
+#include "system.h"
 #include "logging.h"
 #include "main.h"
 #include "hw_config.h"
 #include "timers/timer_sys.h"
 #include "utils/utils.h"
-#include "can/l2_can.h"
+#include "can/es_can.h"
 
 // Configuration bits for the device.  Please refer to the device datasheet for each device
 //   to determine the correct configuration bit settings
@@ -32,7 +33,37 @@ _CONFIG1(JTAGEN_OFF & FWDTEN_OFF & ICS_PGx2)   // JTAG off, watchdog timer off
 #define TAG "MAIN"
 #endif
 
-extern BOOL timer_tick;
+extern bool timer_tick;
+#if defined(CAN_LAYER_3)
+static u8 l3_address = 1;
+result_t get_l3_node_address(u8 *address);
+result_t get_new_l3_node_address(u8 *address);
+#endif
+
+// C30 and C32 Exception Handlers
+// If your code gets here, you either tried to read or write
+// a NULL pointer, or your application overflowed the stack
+// by having too many local variables or parameters declared.
+void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
+{
+#if LOG_LEVEL <= LOG_ERROR
+    serial_log(Error, TAG, "Address error");
+#endif
+    while (1)
+    {
+    }
+}
+
+void _ISR __attribute__((__no_auto_psv__)) _StackError(void)
+{
+#if LOG_LEVEL <= LOG_ERROR
+    serial_log(Error, TAG, "Stack error");
+#endif
+    while (1)
+    {
+    }
+}
+
 
 void err(char *string)
 {
@@ -42,45 +73,22 @@ void err(char *string)
 }
 
 #ifdef TEST
-static void expiry(BYTE *);
+static void expiry(u8 *);
+void status_handler(can_status_t status, baud_rate_t baud);
 #endif
 
 int main(void)
 {
     baud_rate_t baudRate;
-
-#ifdef HEARTBEAT
-    HEARTBEAT_LED_DIRECTION = OUTPUT_PIN;
-    heartbeat_off((BYTE *)NULL);
+    result_t result;
+    u8 l3_address;
+#ifdef TEST
+    BYTE test_byte;
+    UINT16 loop;
 #endif
+    USB_HOST_POWER_PIN_DIRECTION = OUTPUT_PIN;
 
-    SPIInit();
-
-    init_timer();
-
-    /**
-     * Hardware init the Serial Port Pin Direction.
-     * Set RPOR13 PIN D5 = RP20 to Output Function 3 - UART1 Transmit
-     */
-    RPOR10bits.RP20R = 3;
-
-    U1MODE = 0x8800;
-    U1STA = 0x0410;
-    /*
-     * Desired Baud Rate = FCY/(16 (UxBRG + 1))
-     *
-     * UxBRG = ((FCY/Desired Baud Rate)/16) ? 1
-     *
-     * for 19200 Serial Connection wiht 16M Clock
-     *
-     * UxBRG = ((16000000/19200)/16) -1
-     *
-     */
-    //U1BRG = 103; // 9600
-//    U1BRG = 51;
-
-    // Internal Fast RC
-    U1BRG = 12;
+    serial_init();
 
 #if LOG_LEVEL <= LOG_DEBUG
     serial_log(Debug, TAG, "************************\n\r");
@@ -88,65 +96,112 @@ int main(void)
     serial_log(Debug, TAG, "************************\n\r");
 #endif
 
+#ifdef HEARTBEAT
+    HEARTBEAT_LED_DIRECTION = OUTPUT_PIN;
+    heartbeat_off((BYTE *)NULL);
+#endif
+
+    init_timer();
+    spi_init();
+
     /* ToDo sort out baudRate */
-    sys_eeprom_read(NETWORK_BAUD_RATE, (BYTE *)&baudRate);
+//    sys_eeprom_read(NETWORK_BAUD_RATE, (BYTE *) & baudRate);
+    baudRate = no_baud;
 
-    baudRate = baud_10K;
-
-    if(baudRate > BAUD_MAX)
-    {
-#if DEBUG_LEVEL <= LOG_ERROR
-        serial_log(Error, TAG, "No Baud Rate Stored reset to slowest (10K)\n\r");
+#if defined(CAN_LAYER_3)
+    result = get_l3_node_address(&l3_address);
 #endif
-        baudRate = baud_10K;
-    }
-    else
-    {
-#if DEBUG_LEVEL <= LOG_DEBUG
-        serial_log(Debug, TAG, "CAN Baud Rate stored in Flash %s\n\r", baud_rate_strings[baudRate]);
-#endif
-    }
-
-    baudRate = baud_10K;
 
     // Send in null we're not defining a default handler for messages
     // if nothing's regestered an interest we're just not interested
+#if defined(CAN_LAYER_3)
+    can_init(baud_10K, l3_address, status_handler);
+#else
+    can_init(baud_10K, status_handler);
+#endif
 
-//JFW    can_init(baudRate, (l2_msg_handler_t)NULL, (l3_msg_handler_t)NULL, FALSE);
-
-//    enable_interrupts();
+    //    enable_interrupts();
 #ifdef HEARTBEAT
     heartbeat_on(NULL);
 #endif
 
-#ifdef TEST
-    start_timer(SECONDS_TO_TICKS(5), expiry, NULL);
-#endif
     /*
      * Enter the main loop
      */
-    while(TRUE)
-    {
-        if (timer_tick)
-        {
+#if LOG_LEVEL <= LOG_DEBUG
+    serial_log(Debug, TAG, "Entering the main loop\n\r");
+#endif
+    while(TRUE) {
+        if (timer_tick) {
             timer_tick = FALSE;
             tick();
         }
 
-//JFW        canTasks();
+        canTasks();
+#if 0
+        /*
+         * A bit of test code for testing that the EEPROM is reading and
+         * Writing.
+         */
+#ifdef TEST
+        loop++;
+        
+        if(loop == 0) {
+            sys_eeprom_read(0x04, (BYTE *) & test_byte);
+#if DEBUG_LEVEL <= LOG_DEBUG
+            serial_log(Debug, TAG, "Test Read of EEPROM 0x%x\n\r", test_byte);
+#endif
+            test_byte++;
+            sys_eeprom_write(0x04, test_byte);
+
+            /*
+             * Simple test code for the MCP2515 Ouput pins
+             */
+#if 0
+#ifdef MCP2515_OUTPUT_0
+            if ((test_byte - 1) & 0x01) {
+                set_output_0(0x01);
+            } else {
+                set_output_0(0x00);
+            }
+#endif
+
+#ifdef MCP2515_OUTPUT_1
+            if ((test_byte - 1) & 0x02) {
+                set_output_1(0x01);
+            } else {
+                set_output_1(0x00);
+            }
+#endif
+#endif
+        }
+#endif
+#endif
     }
 }
 
-#ifdef TEST
-void expiry(BYTE *input)
+#if defined(CAN_LAYER_3)
+result_t get_l3_node_address(u8 *address)
 {
-    BYTE data;
+	*address = l3_address;
+	return(SUCCESS);
+}
+#endif
 
-    sys_eeprom_write(NETWORK_BAUD_RATE, 0x55);
-    sys_eeprom_read(NETWORK_BAUD_RATE, (BYTE *)&data);
+#if defined(CAN_LAYER_3)
+result_t get_new_l3_node_address(u8 *address)
+{
+	*address = ++l3_address;
+	return(SUCCESS);
+//        sys_eeprom_write(NODE_ADDRESS, (u8) rand());
+}
+#endif
 
-    serial_log(Debug, TAG, "expiry() Read back from EEPROM 0x%x\n\r", data);
-
-    start_timer(SECONDS_TO_TICKS(1), expiry, NULL);
+#ifdef TEST
+void status_handler(can_status_t status, baud_rate_t baud)
+{
+#if DEBUG_LEVEL <= LOG_DEBUG
+    serial_log(Debug, TAG, "status_handler()\n\r");
+#endif
 }
 #endif
