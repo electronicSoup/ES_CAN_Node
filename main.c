@@ -30,6 +30,11 @@
 #include "es_lib/timers/timer_sys.h"
 #include "es_lib/utils/utils.h"
 #include "es_lib/can/es_can.h"
+#include "states.h"
+
+#include "usb/usb.h"
+#include "usb/usb_host_android.h"
+
 
 // Configuration bits for the device.  Please refer to the device datasheet for each device
 //   to determine the correct configuration bit settings
@@ -71,10 +76,12 @@ void _ISR __attribute__((__no_auto_psv__)) _StackError(void)
     }
 }
 
-
-void err(char *string)
+/*
+ * Interrupt Handler for the USB Host Functionality of Microchip USB Stack.
+ */
+void __attribute__((interrupt,auto_psv)) _USB1Interrupt()
 {
-    DEBUG_E(string);
+        USB_HostInterruptHandler();
 }
 
 #ifdef TEST
@@ -82,8 +89,25 @@ void err(char *string)
 void status_handler(can_status_t status, baud_rate_t baud);
 #endif
 
+/*
+ * Device handle for the connected USB Device
+ */
+static void* device_handle = NULL;
+
+/*
+ * This Bootloader holds a state machine which manages the comms with the
+ * connected Android device. Activity is State dependant
+ */
+state_t current_state;
+
 int main(void)
 {
+	char manufacturer[24] = "";
+	char model[24] = "";
+	char description[50] = "";
+	char version[10] = "";
+	char uri[50] = "";
+	ANDROID_ACCESSORY_INFORMATION android_device_info;
     baud_rate_t baudRate;
     result_t result;
     u8 l3_address;
@@ -108,6 +132,52 @@ int main(void)
 
     init_timer();
     spi_init();
+
+	/**
+	 * Initialise the current state of the Android Sate machine to Idle
+	 * [The link text](@ref setIdleState)
+	 */
+	set_idle_state();
+
+	/*
+	 * Set up the details that we're going to pass to a connected Android
+	 * Device.
+	 */
+	strcpypgmtoram(manufacturer, firmware_author, 24);
+	strcpypgmtoram(model, hardware_model, 24);
+	strcpypgmtoram(description, firmware_description, 50);
+	strcpypgmtoram(version, firmware_version, 10);
+	strcpypgmtoram(uri, firmware_uri, 50);
+
+	DEBUG_D("manufacturer - %s\n\r", manufacturer);
+	DEBUG_D("model - %s\n\r", model);
+	DEBUG_D("description -%s\n\r", description);
+	DEBUG_D("version - %s\n\r", version);
+	DEBUG_D("uri - %s\n\r", uri);
+
+	android_device_info.manufacturer = manufacturer;
+	android_device_info.manufacturer_size = sizeof(manufacturer);
+	android_device_info.model = model;
+	android_device_info.model_size = sizeof(model);
+	android_device_info.description = description;
+	android_device_info.description_size = sizeof(description);
+	android_device_info.version = version;
+	android_device_info.version_size = sizeof(version);
+	android_device_info.URI = uri;
+	android_device_info.URI_size = sizeof(uri);
+
+	/*
+	 * Turn on the power to the USB Port as we're going to use Host Mode
+	 */
+	USB_HOST_POWER_PIN_DIRECTION = OUTPUT_PIN;
+	USB_HOST_POWER = 1;
+
+	/*
+	 * These next two lines call the Microchip USB Stack functions to
+	 * initialise the USB Host and Android functionality
+	 */
+	USBInitialize(0);
+	AndroidAppStart(&android_device_info);
 
     /* ToDo sort out baudRate */
 //    sys_eeprom_read(NETWORK_BAUD_RATE, (BYTE *) & baudRate);
