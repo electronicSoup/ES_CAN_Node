@@ -1,23 +1,35 @@
 /**
+ *
  * \file main.c
  *
  * \brief main entry point for the DongleNode project
  *
- * \author John Whitmore
+ * Copyright 2014 John Whitmore <jwhitmore@electronicsoup.com>
  *
- * \date 12th Sept 2013
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the version 2 of the GNU General Public License
+ * as published by the Free Software Foundation
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
  */
-//#include "USB/usb.h"
-//#include "USB/usb_function_cdc.h"
-
-#include "os_api.h"
+#include "es_lib/core.h"
 #include "system.h"
-#include "logging.h"
+#define MAIN
 #include "main.h"
-#include "hw_config.h"
-#include "timers/timer_sys.h"
-#include "utils/utils.h"
-#include "can/es_can.h"
+#undef MAIN
+#define DEBUG_FILE
+#include "es_lib/logger/serial.h"
+#undef DEBUG_FILE
+#include "es_lib/timers/timer_sys.h"
+#include "es_lib/utils/utils.h"
+#include "es_lib/can/es_can.h"
 
 // Configuration bits for the device.  Please refer to the device datasheet for each device
 //   to determine the correct configuration bit settings
@@ -26,29 +38,26 @@
 //
 // Configuration bits for the device.  Please refer to the device datasheet for each device
 //   to determine the correct configuration bit settings
-_CONFIG2(FNOSC_PRIPLL & POSCMOD_NONE & PLL_96MHZ_ON & PLLDIV_DIV2) // Primary HS OSC with PLL, USBPLL /2
+#if defined(PIC24FJ256GB110)
+_CONFIG2(FNOSC_PRIPLL & POSCMOD_HS & PLL_96MHZ_ON & PLLDIV_DIV2) // Primary HS OSC with PLL, USBPLL /2
+#elif defined(PIC24FJ256GB106)
+_CONFIG2(FNOSC_FRCPLL & POSCMOD_NONE & OSCIOFNC_ON & PLL_96MHZ_ON & PLLDIV_NODIV & DISUVREG_OFF)  // CLOCK 16000000
+#endif
 _CONFIG1(JTAGEN_OFF & FWDTEN_OFF & ICS_PGx2)   // JTAG off, watchdog timer off
 
 #if LOG_LEVEL < NO_LOGGING
 #define TAG "MAIN"
 #endif
 
-extern bool timer_tick;
 #if defined(CAN_LAYER_3)
 static u8 l3_address = 1;
 result_t get_l3_node_address(u8 *address);
 result_t get_new_l3_node_address(u8 *address);
 #endif
 
-// C30 and C32 Exception Handlers
-// If your code gets here, you either tried to read or write
-// a NULL pointer, or your application overflowed the stack
-// by having too many local variables or parameters declared.
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
 {
-#if LOG_LEVEL <= LOG_ERROR
-    serial_log(Error, TAG, "Address error");
-#endif
+    DEBUG_E("Address error");
     while (1)
     {
     }
@@ -56,9 +65,7 @@ void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
 
 void _ISR __attribute__((__no_auto_psv__)) _StackError(void)
 {
-#if LOG_LEVEL <= LOG_ERROR
-    serial_log(Error, TAG, "Stack error");
-#endif
+    DEBUG_E("Stack error");
     while (1)
     {
     }
@@ -67,13 +74,11 @@ void _ISR __attribute__((__no_auto_psv__)) _StackError(void)
 
 void err(char *string)
 {
-#if LOG_LEVEL <= LOG_ERROR
-    serial_log(Error, TAG, string);
-#endif
+    DEBUG_E(string);
 }
 
 #ifdef TEST
-static void expiry(u8 *);
+//static void expiry(u8 *);
 void status_handler(can_status_t status, baud_rate_t baud);
 #endif
 
@@ -132,10 +137,7 @@ int main(void)
     serial_log(Debug, TAG, "Entering the main loop\n\r");
 #endif
     while(TRUE) {
-        if (timer_tick) {
-            timer_tick = FALSE;
-            tick();
-        }
+        CHECK_TIMERS();
 
         canTasks();
 #if 0
@@ -200,8 +202,6 @@ result_t get_new_l3_node_address(u8 *address)
 #ifdef TEST
 void status_handler(can_status_t status, baud_rate_t baud)
 {
-#if DEBUG_LEVEL <= LOG_DEBUG
-    serial_log(Debug, TAG, "status_handler()\n\r");
-#endif
+    DEBUG_D("status_handler()\n\r");
 }
 #endif

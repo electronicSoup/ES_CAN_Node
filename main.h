@@ -1,23 +1,82 @@
+/**
+ *
+ * \file main.h
+ *
+ * main definitions for the DongleNode project
+ *
+ * Copyright 2014 John Whitmore <jwhitmore@electronicsoup.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the version 2 of the GNU General Public License
+ * as published by the Free Software Foundation
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 #ifndef MAIN_H
 #define MAIN_H
 
+#define HARDWARE_INFO_BASE 0x200
+#ifdef MAIN
 //
-// Bootloader info
+// Hardware Info
 //
-const char boot_manufacturer[24] __attribute__ ((space(prog),address(0x200)));
-const char boot_model[24] __attribute__ ((space(prog),address(0x218)));
-const char boot_description[24]  __attribute__ ((space(prog),address(0x230)));
-const char boot_version[10]  __attribute__ ((space(prog),address(0x248)));
-const char boot_uri[50]  __attribute__ ((space(prog),address(0x252)));
-const char boot_serial[14] __attribute__ ((space(prog),address(0x284)));
-
-
+const char hardware_manufacturer[24] __attribute__ ((space(prog),address(HARDWARE_INFO_BASE)));
+const char hardware_model[24]        __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24)));
+const char hardware_description[50]  __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24)));
+const char hardware_version[10]      __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50)));
+const char hardware_uri[50]          __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10)));
 //
-// Application Info  BOOTCODE_SIZE
+// Bootloader Info
 //
-const char app_manufacturer[24] __attribute__ ((space(prog),address(0x79F8))) = "electronicSoup";
-const char app_description[24]  __attribute__ ((space(prog),address(0x7a10))) = "CANBus Node OS";
-const char app_version[10]  __attribute__ ((space(prog),address(0x7a28))) = "1.0";
-const char app_uri[50]  __attribute__ ((space(prog),address(0x7a32)))  = "http://www.electronicsoup.com/";
-
+const char bootcode_author[40]       __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50)));
+const char bootcode_description[50]  __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50 + 40)));
+const char bootcode_version[10]      __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50 + 40 + 50)));
+const char bootcode_uri[50]          __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50 + 40 + 50 + 10)));
+#else
+//
+// Hardware Info
+//
+extern const char hardware_manufacturer[24] __attribute__ ((space(prog),address(HARDWARE_INFO_BASE)));
+extern const char hardware_model[24]        __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24)));
+extern const char hardware_description[50]  __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24)));
+extern const char hardware_version[10]      __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50)));
+extern const char hardware_uri[50]          __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10)));
+//
+// Bootloader Info
+//
+extern const char bootcode_author[40]       __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50)));
+extern const char bootcode_description[50]  __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50 + 40)));
+extern const char bootcode_version[10]      __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50 + 40 + 50)));
+extern const char bootcode_uri[50]          __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50 + 40 + 50 + 10)));
+/*
+ * Next Free
+ */
 #endif
+
+/*
+ * Firmware Info
+ */
+#define APP_STRINGS_BASE 0x7E00
+#ifdef MAIN
+const char firmware_author[40]       __attribute__ ((space(prog),address(APP_STRINGS_BASE))) = "electronicSoup";
+const char firmware_description[50]  __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40))) = "CAN Node nano OS";
+const char firmware_version[10]      __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50))) = "0.0.1";
+const char firmware_uri[50]          __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50 + 10))) = "http://www.electronicsoup.com/can_node_os";
+#else
+extern const char firmware_author[40]       __attribute__ ((space(prog),address(APP_STRINGS_BASE)));
+extern const char firmware_description[50]  __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40)));
+extern const char firmware_version[10]      __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50)));
+extern const char firmware_uri[50]          __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50 + 10)));
+#endif
+/*
+ * Next Free Address 0x807E
+ */
+
+#endif // ifndef MAIN_H
