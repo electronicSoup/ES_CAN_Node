@@ -60,6 +60,8 @@ result_t get_l3_node_address(u8 *address);
 result_t get_new_l3_node_address(u8 *address);
 #endif
 
+static void process_msg_from_android(void);
+
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
 {
     DEBUG_E("Address error");
@@ -108,9 +110,10 @@ int main(void)
 	char version[10] = "";
 	char uri[50] = "";
 	ANDROID_ACCESSORY_INFORMATION android_device_info;
-    baud_rate_t baudRate;
-    result_t result;
-    u8 l3_address;
+        baud_rate_t baudRate;
+        result_t result;
+        u8 l3_address;
+	BYTE error_code;
 #ifdef TEST
     BYTE test_byte;
     UINT16 loop;
@@ -144,7 +147,7 @@ int main(void)
 	 * Device.
 	 */
 	strcpypgmtoram(manufacturer, firmware_author, 24);
-	strcpypgmtoram(model, hardware_model, 24);
+	strcpypgmtoram(model, firmware_description, 24);
 	strcpypgmtoram(description, firmware_description, 50);
 	strcpypgmtoram(version, firmware_version, 10);
 	strcpypgmtoram(uri, firmware_uri, 50);
@@ -155,6 +158,7 @@ int main(void)
 	DEBUG_D("version - %s\n\r", version);
 	DEBUG_D("uri - %s\n\r", uri);
 
+        DEBUG_D("Setup android Device Info\n\r");
 	android_device_info.manufacturer = manufacturer;
 	android_device_info.manufacturer_size = sizeof(manufacturer);
 	android_device_info.model = model;
@@ -209,7 +213,25 @@ int main(void)
     while(TRUE) {
         CHECK_TIMERS();
 
+        //Keep the USB stack running
+        USBTasks();
+
         canTasks();
+
+        error_code = android_tasks(device_handle);
+		if ((error_code != USB_SUCCESS) && (error_code != USB_ENDPOINT_UNRESOLVED_STATE)) {
+			DEBUG_D("Error from androidPoll %x\n\r", error_code);
+		}
+
+		/*
+		 * Check for any messages from the Android device.
+		 */
+		process_msg_from_android();
+
+                /*
+                 * Do whatever functionality is required of the current state.
+                 */
+		current_state.main();
 #if 0
         /*
          * A bit of test code for testing that the EEPROM is reading and
@@ -226,26 +248,6 @@ int main(void)
             test_byte++;
             sys_eeprom_write(0x04, test_byte);
 
-            /*
-             * Simple test code for the MCP2515 Ouput pins
-             */
-#if 0
-#ifdef MCP2515_OUTPUT_0
-            if ((test_byte - 1) & 0x01) {
-                set_output_0(0x01);
-            } else {
-                set_output_0(0x00);
-            }
-#endif
-
-#ifdef MCP2515_OUTPUT_1
-            if ((test_byte - 1) & 0x02) {
-                set_output_1(0x01);
-            } else {
-                set_output_1(0x00);
-            }
-#endif
-#endif
         }
 #endif
 #endif
@@ -275,3 +277,115 @@ void status_handler(can_status_t status, baud_rate_t baud)
     DEBUG_D("status_handler()\n\r");
 }
 #endif
+
+/*!
+ * \fn void process_msg_from_android(void)
+ *
+ * \brief processes messages from the android device
+ *
+ * This function polls the system for messages from the Android device
+ */
+static void process_msg_from_android(void)
+{
+	UINT16 size = 0;
+	BYTE read_buffer[300];
+	BYTE error_code = USB_SUCCESS;
+
+	void *data = NULL;
+
+	size = (UINT16)sizeof (read_buffer);
+	while (android_receive((BYTE*) & read_buffer, (UINT16 *)&size, &error_code)) {
+		if (error_code != USB_SUCCESS) {
+			DEBUG_E("android_receive raised an error %x\n\r", error_code);
+		}
+
+		if (size > 1) {
+			data = (void *) &read_buffer[1];
+		} else {
+			data = NULL;
+		}
+
+		/*
+		 * Pass the received message onto the current state for processing.
+		 */
+		DEBUG_D("Process Received message in State Machine\n\r");
+		current_state.process_msg(read_buffer[0], data);
+	}
+}
+
+#if 1
+// Version 2013-12-20  of Microchip Application Libraries
+bool USB_ApplicationDataEventHandler( uint8_t address, USB_EVENT event, void *data, uint32_t size )
+#else
+BOOL USB_ApplicationDataEventHandler ( BYTE address, USB_EVENT event, void *data, DWORD size )
+#endif
+{
+	return FALSE;
+}
+
+#if 1
+// Version 2013-12-20 of Microchip Application Libraries
+bool USB_ApplicationEventHandler( uint8_t address, USB_EVENT event, void *data, uint32_t size )
+#else
+BOOL USB_ApplicationEventHandler( BYTE address, USB_EVENT event, void *data, DWORD size )
+#endif
+{
+	DEBUG_D("USB_ApplicationEventHandler()\n\r");
+	switch( event) {
+        case EVENT_VBUS_REQUEST_POWER:
+		DEBUG_D("EVENT_VBUS_REQUEST_POWER current %d\n\r", ((USB_VBUS_POWER_EVENT_DATA*)data)->current);
+		// The data pointer points to a byte that represents the amount of power
+		// requested in mA, divided by two.  If the device wants too much power,
+		// we reject it.
+		if (((USB_VBUS_POWER_EVENT_DATA*)data)->current <= (MAX_ALLOWED_CURRENT / 2)) {
+			return TRUE;
+		} else {
+			DEBUG_E("\r\n***** USB Error - device requires too much current *****\r\n");
+		}
+		break;
+
+        case EVENT_VBUS_RELEASE_POWER:
+        case EVENT_HUB_ATTACH:
+        case EVENT_UNSUPPORTED_DEVICE:
+        case EVENT_CANNOT_ENUMERATE:
+        case EVENT_CLIENT_INIT_ERROR:
+        case EVENT_OUT_OF_MEMORY:
+        case EVENT_UNSPECIFIED_ERROR:   // This should never be generated.
+        case EVENT_DETACH:              // USB cable has been detached (data: BYTE, address of device)
+        case EVENT_ANDROID_DETACH:
+		/*
+		 * Pass a Detach event on to the state machine for processing.
+		 */
+		DEBUG_D("Device Detached\n\r");
+#if defined(MCP_ANDROID)
+		device_attached = FALSE;
+#endif
+		current_state.process_usb_event(EVENT_ANDROID_DETACH);
+		device_handle = NULL;
+		return TRUE;
+		break;
+
+	// Android Specific events
+        case EVENT_ANDROID_ATTACH:
+		/*
+		 * Pass an Attach even on to the State machine.
+		 */
+		DEBUG_D("Device Attached\n\r");
+#if defined(MCP_ANDROID)
+		device_attached = TRUE;
+#endif
+		current_state.process_usb_event(EVENT_ANDROID_ATTACH);
+		device_handle = data;
+		return TRUE;
+                break;
+
+        case EVENT_OVERRIDE_CLIENT_DRIVER_SELECTION:
+		DEBUG_D("Ignoring EVENT_OVERRIDE_CLIENT_DRIVER_SELECTION\n\r");
+		break;
+
+        default :
+		DEBUG_W("Unknown Event 0x%x\n\r", event);
+		break;
+	}
+	return FALSE;
+}
