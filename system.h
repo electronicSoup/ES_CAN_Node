@@ -24,16 +24,15 @@
 
 #include "es_lib/core.h"
 
+#define NODE
+
+//#if defined(__XC16__)
+
 #define LOG_LEVEL LOG_DEBUG
 
 /** I/O pin definitions ********************************************/
 #define INPUT_PIN 1
 #define OUTPUT_PIN 0
-
-// EEPROM Address MAP
-#define NODE_ADDRESS   0x00
-#define APP_CODE_VALID 0x02
-#define NETWORK_BAUD_RATE 0x03
 
 #define TEST
 
@@ -49,9 +48,19 @@
 
 #define ENABLE_USB
 #define HW_SPI
-#undef  EEPROM
+#define EEPROM
+
+// EEPROM Address MAP
+#define APP_VALID_MAGIC   0x00
+#define L3_NODE_ADDRESS   0x02
+#define CAN_BAUD_RATE     0x03
+#define IO_ADDRESS        0x04
+#define NODE_DESCRIPTION  0x05
+
+
+#define CAN
 //#define L2_CAN_INTERRUPT_DRIVEN
-//#define CAN_LAYER_3
+#define CAN_LAYER_3
 
 #if defined(PIC24FJ256GB110)
 #define CLOCK_FREQ 16000000
@@ -61,7 +70,7 @@
 
 #define SERIAL_BAUD 19200
 
-#if defined(__C30__)
+#if defined(__C30__) || defined(__XC16__)
 #define SPI_RW_FINISHED SPI1STATbits.SPIRBF
 #endif
 
@@ -119,8 +128,6 @@
 
 #if defined(PIC18F4585)
 #define EEPROM_MAX_ADDRESS 0x3ff
-#elif defined(PIC24FJ256GB106)
-#define EEPROM_MAX_ADDRESS 0x7f
 #endif
 
 
@@ -141,7 +148,7 @@
 #endif
 
 #if defined(CAN_LAYER_3)
-result_t get_l3_node_address(u8 *address);
+extern void get_l3_node_address(u8 *address);
 result_t get_new_l3_node_address(u8 *address);
 #endif
 

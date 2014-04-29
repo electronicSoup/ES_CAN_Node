@@ -29,8 +29,10 @@
 #undef DEBUG_FILE
 #include "es_lib/timers/timer_sys.h"
 #include "es_lib/utils/utils.h"
+#ifdef CAN
 #include "es_lib/can/es_can.h"
-#include "states.h"
+#endif //CAN
+#include "es_lib/android/states/states.h"
 
 #include "usb/usb.h"
 #include "usb/usb_host_android.h"
@@ -50,13 +52,12 @@ _CONFIG2(FNOSC_FRCPLL & POSCMOD_NONE & OSCIOFNC_ON & PLL_96MHZ_ON & PLLDIV_NODIV
 #endif
 _CONFIG1(JTAGEN_OFF & FWDTEN_OFF & ICS_PGx2)   // JTAG off, watchdog timer off
 
-#if LOG_LEVEL < NO_LOGGING
+
 #define TAG "MAIN"
-#endif
 
 #if defined(CAN_LAYER_3)
 static u8 l3_address = 1;
-result_t get_l3_node_address(u8 *address);
+void get_l3_node_address(u8 *address);
 result_t get_new_l3_node_address(u8 *address);
 #endif
 
@@ -86,8 +87,7 @@ void __attribute__((interrupt,auto_psv)) _USB1Interrupt()
         USB_HostInterruptHandler();
 }
 
-#ifdef TEST
-//static void expiry(u8 *);
+#if defined(CAN)
 void status_handler(can_status_t status, baud_rate_t baud);
 #endif
 
@@ -110,11 +110,15 @@ int main(void)
 	char version[10] = "";
 	char uri[50] = "";
 	ANDROID_ACCESSORY_INFORMATION android_device_info;
-        baud_rate_t baudRate;
+#if defined(CAN)
+        baud_rate_t baud_rate;
+#endif // CAN
         result_t result;
         u8 l3_address;
 	BYTE error_code;
 #ifdef TEST
+        char string[10] = "testing";
+        char buffer[10];
     BYTE test_byte;
     UINT16 loop;
 #endif
@@ -122,11 +126,9 @@ int main(void)
 
     serial_init();
 
-#if LOG_LEVEL <= LOG_DEBUG
-    serial_log(Debug, TAG, "************************\n\r");
-    serial_log(Debug, TAG, "***   CAN Bus Node   ***\n\r");
-    serial_log(Debug, TAG, "************************\n\r");
-#endif
+    DEBUG_D("************************\n\r");
+    DEBUG_D("***   CAN Bus Node   ***\n\r");
+    DEBUG_D("************************\n\r");
 
 #ifdef HEARTBEAT
     HEARTBEAT_LED_DIRECTION = OUTPUT_PIN;
@@ -137,20 +139,20 @@ int main(void)
     spi_init();
 
 	/**
-	 * Initialise the current state of the Android Sate machine to Idle
-	 * [The link text](@ref setIdleState)
-	 */
-	set_idle_state();
+     * Initialise the current state of the Android Sate machine to Idle
+     * [The link text](@ref set_idle_state)
+     */
+    set_idle_state();
 
 	/*
 	 * Set up the details that we're going to pass to a connected Android
 	 * Device.
 	 */
-	strcpypgmtoram(manufacturer, firmware_author, 24);
-	strcpypgmtoram(model, firmware_description, 24);
-	strcpypgmtoram(description, firmware_description, 50);
-	strcpypgmtoram(version, firmware_version, 10);
-	strcpypgmtoram(uri, firmware_uri, 50);
+	strcpypgmtoram(manufacturer, hardware_manufacturer, 24);
+	strcpypgmtoram(model, hardware_model, 24);
+	strcpypgmtoram(description, hardware_description, 50);
+	strcpypgmtoram(version, bootcode_version, 10);
+	strcpypgmtoram(uri, bootcode_uri, 50);
 
 	DEBUG_D("manufacturer - %s\n\r", manufacturer);
 	DEBUG_D("model - %s\n\r", model);
@@ -183,22 +185,25 @@ int main(void)
 	USBInitialize(0);
 	AndroidAppStart(&android_device_info);
 
-    /* ToDo sort out baudRate */
-//    sys_eeprom_read(NETWORK_BAUD_RATE, (BYTE *) & baudRate);
-    baudRate = no_baud;
+#if defined(CAN)
+        /* ToDo sort out baudRate */
+        eeprom_read(CAN_BAUD_RATE, (BYTE *) & baud_rate);
+        if(baud_rate >= no_baud) {
+            baud_rate = baud_10K;
+            DEBUG_W("No CAN Baud Rate set so storing 10KBit/s\n\r");
+            eeprom_write(CAN_BAUD_RATE, baud_rate);
+        }
 
 #if defined(CAN_LAYER_3)
-    result = get_l3_node_address(&l3_address);
-#endif
+        get_l3_node_address(&l3_address);
+#endif // CAN_LAYER_3
+#endif // CAN
 
     // Send in null we're not defining a default handler for messages
     // if nothing's regestered an interest we're just not interested
-#if defined(CAN_LAYER_3)
-    can_init(baud_10K, l3_address, status_handler);
-#else
+#if defined(CAN)
     can_init(baud_10K, status_handler);
-#endif
-
+#endif // CAN
     //    enable_interrupts();
 #ifdef HEARTBEAT
     heartbeat_on(NULL);
@@ -211,13 +216,13 @@ int main(void)
     serial_log(Debug, TAG, "Entering the main loop\n\r");
 #endif
     while(TRUE) {
-        CHECK_TIMERS();
+      CHECK_TIMERS();
 
         //Keep the USB stack running
         USBTasks();
-
+#if defined(CAN)
         canTasks();
-
+#endif
         error_code = android_tasks(device_handle);
 		if ((error_code != USB_SUCCESS) && (error_code != USB_ENDPOINT_UNRESOLVED_STATE)) {
 			DEBUG_D("Error from androidPoll %x\n\r", error_code);
@@ -255,10 +260,9 @@ int main(void)
 }
 
 #if defined(CAN_LAYER_3)
-result_t get_l3_node_address(u8 *address)
+void get_l3_node_address(u8 *address)
 {
-	*address = l3_address;
-	return(SUCCESS);
+        eeprom_read(L3_NODE_ADDRESS, address);
 }
 #endif
 
@@ -271,12 +275,13 @@ result_t get_new_l3_node_address(u8 *address)
 }
 #endif
 
-#ifdef TEST
+
+#if defined(CAN)
 void status_handler(can_status_t status, baud_rate_t baud)
 {
-    DEBUG_D("status_handler()\n\r");
+    DEBUG_D("status_handler(0x%x, 0x%x)\n\r", status, baud);
 }
-#endif
+#endif // CAN
 
 /*!
  * \fn void process_msg_from_android(void)
@@ -309,7 +314,7 @@ static void process_msg_from_android(void)
 		 * Pass the received message onto the current state for processing.
 		 */
 		DEBUG_D("Process Received message in State Machine\n\r");
-		current_state.process_msg(read_buffer[0], data);
+		current_state.process_msg(read_buffer[0], data, size - 1);
 	}
 }
 
