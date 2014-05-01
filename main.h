@@ -66,7 +66,7 @@ extern const char bootcode_uri[50]          __attribute__ ((space(prog),address(
 /*
  * Firmware Info
  */
-#define APP_STRINGS_BASE 0x7E00
+#define APP_STRINGS_BASE 0x7C00
 #ifdef MAIN
 const char firmware_author[40]       __attribute__ ((space(prog),address(APP_STRINGS_BASE))) = "electronicsoup.com";
 const char firmware_description[50]  __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40))) = "Cinnamon Bun";
@@ -78,8 +78,5 @@ extern const char firmware_description[50]  __attribute__ ((space(prog),address(
 extern const char firmware_version[10]      __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50)));
 extern const char firmware_uri[50]          __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50 + 10)));
 #endif
-/*
- * Next Free Address 0x807E
- */
 
 #endif // ifndef MAIN_H

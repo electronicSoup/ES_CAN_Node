@@ -1,10 +1,10 @@
 # ~/bin/libver
 # es_lib
-commit a94bff9bcb2556ca7af860b6088885cb256b19a8
-Merge: 7f52a97 203116b
+commit 408fb6925d981acf55322b32f302e2cbc12b26dc
 Author: John Whitmore <johnfwhitmore@gmail.com>
-Date:   Tue Apr 29 13:46:28 2014 +0100
+Date:   Thu May 1 20:43:08 2014 +0100
 
-    Merge changes from Boot code and Node Code
+    name changes to get the build working. Other projects have changed names of
+    files and some functions
     
-    Merge branch 'master' of /home/john/Dropbox/MPLABXProjects/es_lib
+    Signed-off-by: John Whitmore <johnfwhitmore@gmail.com>

@@ -30,6 +30,11 @@
 
 #define LOG_LEVEL LOG_DEBUG
 
+/*
+ * Number of timers in the system
+ */
+#define NUMBER_OF_TIMERS 20
+
 /** I/O pin definitions ********************************************/
 #define INPUT_PIN 1
 #define OUTPUT_PIN 0

@@ -29,9 +29,11 @@
 #undef DEBUG_FILE
 #include "es_lib/timers/timer_sys.h"
 #include "es_lib/utils/utils.h"
+#include "es_lib/android/states/states.h"
 #ifdef CAN
 #include "es_lib/can/es_can.h"
 #endif //CAN
+#include "es_lib/android/android.h"
 #include "es_lib/android/states/states.h"
 
 #include "usb/usb.h"
@@ -65,18 +67,16 @@ static void process_msg_from_android(void);
 
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
 {
-    DEBUG_E("Address error");
-    while (1)
-    {
-    }
+	DEBUG_E("Address error");
+	while (1) {
+	}
 }
 
 void _ISR __attribute__((__no_auto_psv__)) _StackError(void)
 {
-    DEBUG_E("Stack error");
-    while (1)
-    {
-    }
+	DEBUG_E("Stack error");
+	while (1)  {
+	}
 }
 
 /*
@@ -119,30 +119,35 @@ int main(void)
 #ifdef TEST
         char string[10] = "testing";
         char buffer[10];
-    BYTE test_byte;
-    UINT16 loop;
+	BYTE test_byte;
+	UINT16 loop;
 #endif
-    USB_HOST_POWER_PIN_DIRECTION = OUTPUT_PIN;
+	USB_HOST_POWER_PIN_DIRECTION = OUTPUT_PIN;
 
-    serial_init();
+	serial_init();
 
-    DEBUG_D("************************\n\r");
-    DEBUG_D("***   CAN Bus Node   ***\n\r");
-    DEBUG_D("************************\n\r");
+	DEBUG_D("************************\n\r");
+	DEBUG_D("***   CAN Bus Node   ***\n\r");
+	DEBUG_D("************************\n\r");
 
 #ifdef HEARTBEAT
-    HEARTBEAT_LED_DIRECTION = OUTPUT_PIN;
-    heartbeat_off((BYTE *)NULL);
+	HEARTBEAT_LED_DIRECTION = OUTPUT_PIN;
+	heartbeat_off((BYTE *)NULL);
 #endif
+	init_timer();
+	spi_init();
+	android_init();
 
-    init_timer();
-    spi_init();
+	/*
+	 * Initialise the OS structures.
+	 */
+	os_init();
 
 	/**
-     * Initialise the current state of the Android Sate machine to Idle
-     * [The link text](@ref set_idle_state)
-     */
-    set_idle_state();
+	 * Initialise the current state of the Android Sate machine to Idle
+	 * [The link text](@ref set_idle_state)
+	 */
+	set_idle_state();
 
 	/*
 	 * Set up the details that we're going to pass to a connected Android
@@ -189,41 +194,33 @@ int main(void)
         /* ToDo sort out baudRate */
         eeprom_read(CAN_BAUD_RATE, (BYTE *) & baud_rate);
         if(baud_rate >= no_baud) {
-            baud_rate = baud_10K;
-            DEBUG_W("No CAN Baud Rate set so storing 10KBit/s\n\r");
-            eeprom_write(CAN_BAUD_RATE, baud_rate);
+		baud_rate = baud_10K;
+		DEBUG_W("No CAN Baud Rate set so storing 10KBit/s\n\r");
+		eeprom_write(CAN_BAUD_RATE, baud_rate);
         }
 
-#if defined(CAN_LAYER_3)
-        get_l3_node_address(&l3_address);
-#endif // CAN_LAYER_3
+	// Send in null we're not defining a default handler for messages
+	// if nothing's regestered an interest we're just not interested
+	can_init(baud_10K, status_handler);
 #endif // CAN
-
-    // Send in null we're not defining a default handler for messages
-    // if nothing's regestered an interest we're just not interested
-#if defined(CAN)
-    can_init(baud_10K, status_handler);
-#endif // CAN
-    //    enable_interrupts();
+	//    enable_interrupts();
 #ifdef HEARTBEAT
-    heartbeat_on(NULL);
+	heartbeat_on(NULL);
 #endif
 
-    /*
-     * Enter the main loop
-     */
-#if LOG_LEVEL <= LOG_DEBUG
-    serial_log(Debug, TAG, "Entering the main loop\n\r");
-#endif
-    while(TRUE) {
-      CHECK_TIMERS();
+	/*
+	 * Enter the main loop
+	 */
+	DEBUG_D("Entering the main loop\n\r");
+	while(TRUE) {
+		CHECK_TIMERS();
 
-        //Keep the USB stack running
-        USBTasks();
+		//Keep the USB stack running
+		USBTasks();
 #if defined(CAN)
-        canTasks();
+		canTasks();
 #endif
-        error_code = android_tasks(device_handle);
+		error_code = android_tasks(device_handle);
 		if ((error_code != USB_SUCCESS) && (error_code != USB_ENDPOINT_UNRESOLVED_STATE)) {
 			DEBUG_D("Error from androidPoll %x\n\r", error_code);
 		}
@@ -237,26 +234,7 @@ int main(void)
                  * Do whatever functionality is required of the current state.
                  */
 		current_state.main();
-#if 0
-        /*
-         * A bit of test code for testing that the EEPROM is reading and
-         * Writing.
-         */
-#ifdef TEST
-        loop++;
-        
-        if(loop == 0) {
-            sys_eeprom_read(0x04, (BYTE *) & test_byte);
-#if DEBUG_LEVEL <= LOG_DEBUG
-            serial_log(Debug, TAG, "Test Read of EEPROM 0x%x\n\r", test_byte);
-#endif
-            test_byte++;
-            sys_eeprom_write(0x04, test_byte);
-
-        }
-#endif
-#endif
-    }
+	}
 }
 
 #if defined(CAN_LAYER_3)
@@ -279,7 +257,7 @@ result_t get_new_l3_node_address(u8 *address)
 #if defined(CAN)
 void status_handler(can_status_t status, baud_rate_t baud)
 {
-    DEBUG_D("status_handler(0x%x, 0x%x)\n\r", status, baud);
+	DEBUG_D("status_handler(0x%x, 0x%x)\n\r", status, baud);
 }
 #endif // CAN
 
