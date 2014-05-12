@@ -34,7 +34,7 @@ const char hardware_manufacturer[24] __attribute__ ((space(prog),address(HARDWAR
 const char hardware_model[24]        __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24))) = "Cinnamon Bun";
 const char hardware_description[50]  __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24))) = "CAN Bus Node dev Platform";
 const char hardware_version[10]      __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50))) = "1.0.0";
-const char hardware_uri[50]          __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10))) = "http://www.electronicsoup.com/can_bus_node";
+const char hardware_uri[50]          __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10))) = "http://www.electronicsoup.com/cinnamon_bun";
 //
 // Bootloader Info
 //
@@ -66,17 +66,30 @@ extern const char bootcode_uri[50]          __attribute__ ((space(prog),address(
 /*
  * Firmware Info
  */
-#define APP_STRINGS_BASE 0x7C00
+#define FIRMWARE_STRINGS_BASE 0x7C00
 #ifdef MAIN
-const char firmware_author[40]       __attribute__ ((space(prog),address(APP_STRINGS_BASE))) = "electronicsoup.com";
-const char firmware_description[50]  __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40))) = "Cinnamon Bun";
-const char firmware_version[10]      __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50))) = "1.0";
-const char firmware_uri[50]          __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50 + 10))) = "www.electronicsoup.com/cinnamonbun";
+const char firmware_author[40]       __attribute__ ((space(prog),address(FIRMWARE_STRINGS_BASE))) = "electronicsoup.com";
+const char firmware_description[50]  __attribute__ ((space(prog),address(FIRMWARE_STRINGS_BASE + 40))) = "Cinnamon Bun";
+const char firmware_version[10]      __attribute__ ((space(prog),address(FIRMWARE_STRINGS_BASE + 40 + 50))) = "1.0";
+const char firmware_uri[50]          __attribute__ ((space(prog),address(FIRMWARE_STRINGS_BASE + 40 + 50 + 10))) = "www.electronicsoup.com/can_node_os";
 #else
-extern const char firmware_author[40]       __attribute__ ((space(prog),address(APP_STRINGS_BASE)));
-extern const char firmware_description[50]  __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40)));
-extern const char firmware_version[10]      __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50)));
-extern const char firmware_uri[50]          __attribute__ ((space(prog),address(APP_STRINGS_BASE + 40 + 50 + 10)));
+extern const char firmware_author[40]       __attribute__ ((space(prog),address(FIRMWARE_STRINGS_BASE)));
+extern const char firmware_description[50]  __attribute__ ((space(prog),address(FIRMWARE_STRINGS_BASE + 40)));
+extern const char firmware_version[10]      __attribute__ ((space(prog),address(FIRMWARE_STRINGS_BASE + 40 + 50)));
+extern const char firmware_uri[50]          __attribute__ ((space(prog),address(FIRMWARE_STRINGS_BASE + 40 + 50 + 10)));
 #endif
+
+#define APPLICATION_STRINGS_BASE 0x18000
+#ifdef MAIN
+__prog__ char app_author[40] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE)));
+__prog__ char app_software[50] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE + 40)));
+__prog__ char app_version[10] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE + 40 + 50)));
+__prog__ char app_uri[50] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE + 40 + 50 + 10)));
+#else
+extern __prog__ char app_author[40] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE)));
+extern __prog__ char app_software[50] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE + 40)));
+extern __prog__ char app_version[10] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE + 40 + 50)));
+extern __prog__ char app_uri[50] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE + 40 + 50 + 10)));
+#endif //MAIN
 
 #endif // ifndef MAIN_H

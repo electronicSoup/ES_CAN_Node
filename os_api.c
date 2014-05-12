@@ -24,8 +24,11 @@
 #define DEBUG_FILE
 #include "es_lib/logger/serial.h"
 #undef DEBUG_FILE
+#include "os_api.h"
 
 #define TAG "OS"
+
+BOOL application_invalid;
 
 typedef struct {
     BOOL active;
@@ -34,7 +37,7 @@ typedef struct {
 
 os_timer_t os_timers[NUMBER_OF_TIMERS];
 
-void os_init(void)
+void os_init_data(void)
 {
     u16 loop;
 
@@ -153,7 +156,7 @@ result_t os_l3_unreg_handler()
 */
 result_t os_node_log()
 {
-
+    DEBUG_D("os_node_log\n\r");
 }
 
 /*
@@ -178,4 +181,14 @@ result_t os_net_reg_handler()
 result_t os_net_unreg_handler()
 {
 
+}
+
+/*
+** os_invalidate_app
+*/
+result_t os_invalidate_app_isr(void)
+{
+    eeprom_write(APP_VALID_MAGIC, 0x00);
+    eeprom_write(APP_VALID_MAGIC + 1, 0x00);
+    application_invalid |= APP_ISR_INVALID;
 }

@@ -35,6 +35,11 @@
  */
 #define NUMBER_OF_TIMERS 20
 
+/* 
+ * The start of the Application in Flash memory
+ */
+#define APP_START_ADDRESS 0x18000
+
 /** I/O pin definitions ********************************************/
 #define INPUT_PIN 1
 #define OUTPUT_PIN 0
@@ -54,6 +59,8 @@
 #define ENABLE_USB
 #define HW_SPI
 #define EEPROM
+
+#define APP_VALID_MAGIC_VALUE  0x55
 
 // EEPROM Address MAP
 #define APP_VALID_MAGIC   0x00

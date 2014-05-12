@@ -35,6 +35,7 @@
 #endif //CAN
 #include "es_lib/android/android.h"
 #include "es_lib/android/states/states.h"
+#include "os_api.h"
 
 #include "usb/usb.h"
 #include "usb/usb_host_android.h"
@@ -52,10 +53,13 @@ _CONFIG2(FNOSC_PRIPLL & POSCMOD_HS & PLL_96MHZ_ON & PLLDIV_DIV2) // Primary HS O
 #elif defined(PIC24FJ256GB106)
 _CONFIG2(FNOSC_FRCPLL & POSCMOD_NONE & OSCIOFNC_ON & PLL_96MHZ_ON & PLLDIV_NODIV & DISUVREG_OFF)  // CLOCK 16000000
 #endif
-_CONFIG1(JTAGEN_OFF & FWDTEN_OFF & ICS_PGx2)   // JTAG off, watchdog timer off
+_CONFIG1(JTAGEN_OFF & FWDTEN_OFF & FWPSA_PR32 & WDTPS_PS4096 & WINDIS_OFF & ICS_PGx2)   // JTAG off, watchdog timer on
 
 
 #define TAG "MAIN"
+
+void (*app_init)(void) = (void (*)(void))0x18096;
+void (*app_main)(void) = (void (*)(void))0x1809A;
 
 #if defined(CAN_LAYER_3)
 static u8 l3_address = 1;
@@ -116,6 +120,8 @@ int main(void)
         result_t result;
         u8 l3_address;
 	BYTE error_code;
+        BYTE magic_1;
+        BYTE magic_2;
 #ifdef TEST
         char string[10] = "testing";
         char buffer[10];
@@ -130,6 +136,37 @@ int main(void)
 	DEBUG_D("***   CAN Bus Node   ***\n\r");
 	DEBUG_D("************************\n\r");
 
+        psv_strcpy(manufacturer, app_author, 40);
+        DEBUG_D("App Author:%s strlen %d\n\r", manufacturer, strlen(manufacturer));
+
+        if(RCONbits.WDTO){
+            DEBUG_E("Watch Dog Reset!!!\n\r");
+        }
+
+        if(RCONbits.WDTO || strlen(manufacturer) == 0) {
+     asm ("CLRWDT");
+        DEBUG_D("App Invalid\n\r");
+		eeprom_write(APP_VALID_MAGIC, 0x00);
+		eeprom_write(APP_VALID_MAGIC + 1, 0x00);
+                application_invalid = (APP_INIT_INVALID | APP_MAIN_INVLAID | APP_ISR_INVALID);
+        }
+
+     asm ("CLRWDT");
+        eeprom_read(APP_VALID_MAGIC, &magic_1);
+        eeprom_read(APP_VALID_MAGIC + 1, &magic_2);
+        if(  (magic_1 == APP_VALID_MAGIC_VALUE)
+           &&(magic_2 == ~APP_VALID_MAGIC_VALUE)) {
+            application_invalid = 0x00;
+            DEBUG_I("Applicaiton is Valid\n\r");
+    }
+
+    /*
+     * Reset the Watch Dog timer flag so we can detect the next one.
+     */
+        RCONbits.WDTO = 0;
+
+     asm ("CLRWDT");
+
 #ifdef HEARTBEAT
 	HEARTBEAT_LED_DIRECTION = OUTPUT_PIN;
 	heartbeat_off((BYTE *)NULL);
@@ -138,10 +175,11 @@ int main(void)
 	spi_init();
 	android_init();
 
+     asm ("CLRWDT");
 	/*
 	 * Initialise the OS structures.
 	 */
-	os_init();
+	os_init_data();
 
 	/**
 	 * Initialise the current state of the Android Sate machine to Idle
@@ -149,6 +187,7 @@ int main(void)
 	 */
 	set_idle_state();
 
+     asm ("CLRWDT");
 	/*
 	 * Set up the details that we're going to pass to a connected Android
 	 * Device.
@@ -157,7 +196,7 @@ int main(void)
 	strcpypgmtoram(model, hardware_model, 24);
 	strcpypgmtoram(description, hardware_description, 50);
 	strcpypgmtoram(version, bootcode_version, 10);
-	strcpypgmtoram(uri, bootcode_uri, 50);
+	strcpypgmtoram(uri, firmware_uri, 50);
 
 	DEBUG_D("manufacturer - %s\n\r", manufacturer);
 	DEBUG_D("model - %s\n\r", model);
@@ -177,6 +216,7 @@ int main(void)
 	android_device_info.URI = uri;
 	android_device_info.URI_size = sizeof(uri);
 
+     asm ("CLRWDT");
 	/*
 	 * Turn on the power to the USB Port as we're going to use Host Mode
 	 */
@@ -190,6 +230,7 @@ int main(void)
 	USBInitialize(0);
 	AndroidAppStart(&android_device_info);
 
+     asm ("CLRWDT");
 #if defined(CAN)
         /* ToDo sort out baudRate */
         eeprom_read(CAN_BAUD_RATE, (BYTE *) & baud_rate);
@@ -207,12 +248,17 @@ int main(void)
 #ifdef HEARTBEAT
 	heartbeat_on(NULL);
 #endif
+     asm ("CLRWDT");
+        if(!application_invalid) {
+            app_init();
+        }
 
 	/*
 	 * Enter the main loop
 	 */
 	DEBUG_D("Entering the main loop\n\r");
 	while(TRUE) {
+        asm ("CLRWDT");
 		CHECK_TIMERS();
 
 		//Keep the USB stack running
@@ -234,6 +280,10 @@ int main(void)
                  * Do whatever functionality is required of the current state.
                  */
 		current_state.main();
+
+                if(!application_invalid) {
+                    app_main();
+                }
 	}
 }
 
