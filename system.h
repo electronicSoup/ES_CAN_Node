@@ -38,7 +38,10 @@
 /* 
  * The start of the Application in Flash memory
  */
-#define APP_START_ADDRESS 0x18000
+#define APP_HANDLE_ADDRESS 0x400
+#define APP_START_ADDRESS  0x18000
+#define CALL_APP_INIT()    asm("call 0x18096")
+#define CALL_APP_MAIN()    asm("call 0x1809A")
 
 /** I/O pin definitions ********************************************/
 #define INPUT_PIN 1
@@ -63,16 +66,18 @@
 #define APP_VALID_MAGIC_VALUE  0x55
 
 // EEPROM Address MAP
-#define APP_VALID_MAGIC   0x00
-#define L3_NODE_ADDRESS   0x02
-#define CAN_BAUD_RATE     0x03
-#define IO_ADDRESS        0x04
-#define NODE_DESCRIPTION  0x05
+#define APP_VALID_MAGIC_ADDR   0x00
+#define L3_NODE_ADDRESS_ADDR   0x02
+#define CAN_BAUD_RATE_ADDR     0x03
+#define IO_ADDRESS_ADDR        0x04
+#define NODE_DESCRIPTION_ADDR  0x05
 
+#define APP_EEPROM_START  0x40
+#define EEPROM_MAX_ADDRESS 0x7F
 
-#define CAN
+//#define CAN
 //#define L2_CAN_INTERRUPT_DRIVEN
-#define CAN_LAYER_3
+//#define CAN_LAYER_3
 
 #if defined(PIC24FJ256GB110)
 #define CLOCK_FREQ 16000000

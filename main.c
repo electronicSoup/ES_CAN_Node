@@ -21,6 +21,7 @@
  */
 #include "es_lib/core.h"
 #include "system.h"
+#include <stdio.h>
 #define MAIN
 #include "main.h"
 #undef MAIN
@@ -53,13 +54,10 @@ _CONFIG2(FNOSC_PRIPLL & POSCMOD_HS & PLL_96MHZ_ON & PLLDIV_DIV2) // Primary HS O
 #elif defined(PIC24FJ256GB106)
 _CONFIG2(FNOSC_FRCPLL & POSCMOD_NONE & OSCIOFNC_ON & PLL_96MHZ_ON & PLLDIV_NODIV & DISUVREG_OFF)  // CLOCK 16000000
 #endif
-_CONFIG1(JTAGEN_OFF & FWDTEN_OFF & FWPSA_PR32 & WDTPS_PS4096 & WINDIS_OFF & ICS_PGx2)   // JTAG off, watchdog timer on
+_CONFIG1(JTAGEN_OFF & FWDTEN_ON & FWPSA_PR32 & WDTPS_PS1024 & WINDIS_OFF & ICS_PGx2)   // JTAG off, watchdog timer on
 
 
 #define TAG "MAIN"
-
-void (*app_init)(void) = (void (*)(void))0x18096;
-void (*app_main)(void) = (void (*)(void))0x1809A;
 
 #if defined(CAN_LAYER_3)
 static u8 l3_address = 1;
@@ -117,20 +115,14 @@ int main(void)
 #if defined(CAN)
         baud_rate_t baud_rate;
 #endif // CAN
-        result_t result;
-        u8 l3_address;
 	BYTE error_code;
         BYTE magic_1;
         BYTE magic_2;
-#ifdef TEST
-        char string[10] = "testing";
-        char buffer[10];
-	BYTE test_byte;
-	UINT16 loop;
-#endif
-	USB_HOST_POWER_PIN_DIRECTION = OUTPUT_PIN;
+
+        USB_HOST_POWER_PIN_DIRECTION = OUTPUT_PIN;
 
 	serial_init();
+	spi_init();
 
 	DEBUG_D("************************\n\r");
 	DEBUG_D("***   CAN Bus Node   ***\n\r");
@@ -140,42 +132,45 @@ int main(void)
         DEBUG_D("App Author:%s strlen %d\n\r", manufacturer, strlen(manufacturer));
 
         if(RCONbits.WDTO){
-            DEBUG_E("Watch Dog Reset!!!\n\r");
+		DEBUG_E("Watch Dog Reset!!!\n\r");
         }
 
         if(RCONbits.WDTO || strlen(manufacturer) == 0) {
-     asm ("CLRWDT");
-        DEBUG_D("App Invalid\n\r");
-		eeprom_write(APP_VALID_MAGIC, 0x00);
-		eeprom_write(APP_VALID_MAGIC + 1, 0x00);
-                application_invalid = (APP_INIT_INVALID | APP_MAIN_INVLAID | APP_ISR_INVALID);
+		asm ("CLRWDT");
+		eeprom_write(APP_VALID_MAGIC_ADDR, 0x00);
+		eeprom_write(APP_VALID_MAGIC_ADDR + 1, 0x00);
+		DEBUG_I("Applicaiton is NOT Valid WDT or Bad String!\n\r");
+                app_valid = FALSE;
+        } else {
+		asm ("CLRWDT");
+		eeprom_read(APP_VALID_MAGIC_ADDR, &magic_1);
+		eeprom_read(APP_VALID_MAGIC_ADDR + 1, &magic_2);
+		DEBUG_D("Read Magic 1 0x%x-0x%x\n\r", magic_1, APP_VALID_MAGIC_VALUE);
+		DEBUG_D("Read Magic 2 0x%x-0x%x\n\r", magic_2, (u8)(~APP_VALID_MAGIC_VALUE));
+		if(  (magic_1 == APP_VALID_MAGIC_VALUE)
+		   &&(magic_2 == (u8)(~APP_VALID_MAGIC_VALUE)) ) {
+			app_valid = TRUE;
+			DEBUG_I("Applicaiton is Valid\n\r");
+		} else {
+			DEBUG_I("Applicaiton is NOT Valid Bad Magic! 0x%x-0x%x\n\r", magic_1, magic_2);
+			app_valid = FALSE;
+		}
         }
-
-     asm ("CLRWDT");
-        eeprom_read(APP_VALID_MAGIC, &magic_1);
-        eeprom_read(APP_VALID_MAGIC + 1, &magic_2);
-        if(  (magic_1 == APP_VALID_MAGIC_VALUE)
-           &&(magic_2 == ~APP_VALID_MAGIC_VALUE)) {
-            application_invalid = 0x00;
-            DEBUG_I("Applicaiton is Valid\n\r");
-    }
-
-    /*
-     * Reset the Watch Dog timer flag so we can detect the next one.
-     */
+	/*
+	 * Reset the Watch Dog timer flag so we can detect the next one.
+	 */
         RCONbits.WDTO = 0;
 
-     asm ("CLRWDT");
+	asm ("CLRWDT");
 
 #ifdef HEARTBEAT
 	HEARTBEAT_LED_DIRECTION = OUTPUT_PIN;
 	heartbeat_off((BYTE *)NULL);
 #endif
 	init_timer();
-	spi_init();
 	android_init();
 
-     asm ("CLRWDT");
+	asm ("CLRWDT");
 	/*
 	 * Initialise the OS structures.
 	 */
@@ -187,7 +182,7 @@ int main(void)
 	 */
 	set_idle_state();
 
-     asm ("CLRWDT");
+	asm ("CLRWDT");
 	/*
 	 * Set up the details that we're going to pass to a connected Android
 	 * Device.
@@ -216,7 +211,7 @@ int main(void)
 	android_device_info.URI = uri;
 	android_device_info.URI_size = sizeof(uri);
 
-     asm ("CLRWDT");
+	asm ("CLRWDT");
 	/*
 	 * Turn on the power to the USB Port as we're going to use Host Mode
 	 */
@@ -230,14 +225,14 @@ int main(void)
 	USBInitialize(0);
 	AndroidAppStart(&android_device_info);
 
-     asm ("CLRWDT");
+	asm ("CLRWDT");
 #if defined(CAN)
         /* ToDo sort out baudRate */
-        eeprom_read(CAN_BAUD_RATE, (BYTE *) & baud_rate);
+        eeprom_read(CAN_BAUD_RATE_ADDR, (BYTE *) & baud_rate);
         if(baud_rate >= no_baud) {
 		baud_rate = baud_10K;
 		DEBUG_W("No CAN Baud Rate set so storing 10KBit/s\n\r");
-		eeprom_write(CAN_BAUD_RATE, baud_rate);
+		eeprom_write(CAN_BAUD_RATE_ADDR, baud_rate);
         }
 
 	// Send in null we're not defining a default handler for messages
@@ -248,9 +243,9 @@ int main(void)
 #ifdef HEARTBEAT
 	heartbeat_on(NULL);
 #endif
-     asm ("CLRWDT");
-        if(!application_invalid) {
-            app_init();
+	asm ("CLRWDT");
+        if(app_valid) {
+		CALL_APP_INIT();
         }
 
 	/*
@@ -258,7 +253,7 @@ int main(void)
 	 */
 	DEBUG_D("Entering the main loop\n\r");
 	while(TRUE) {
-        asm ("CLRWDT");
+		asm ("CLRWDT");
 		CHECK_TIMERS();
 
 		//Keep the USB stack running
@@ -281,8 +276,8 @@ int main(void)
                  */
 		current_state.main();
 
-                if(!application_invalid) {
-                    app_main();
+                if(app_valid) {
+			CALL_APP_MAIN();
                 }
 	}
 }
@@ -290,7 +285,7 @@ int main(void)
 #if defined(CAN_LAYER_3)
 void get_l3_node_address(u8 *address)
 {
-        eeprom_read(L3_NODE_ADDRESS, address);
+        eeprom_read(L3_NODE_ADDRESS_ADDR, address);
 }
 #endif
 
