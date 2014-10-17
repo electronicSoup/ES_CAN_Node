@@ -1,8 +1,9 @@
 /**
  *
- * \file system.h
+ * \file es_lib/example_system.h
  *
- * System definitions for the DongleNode Project
+ * This file contains the various switches which can be used with the
+ * es_lib source code library. 
  *
  * Copyright 2014 John Whitmore <jwhitmore@electronicsoup.com>
  *
@@ -19,154 +20,91 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef SYSTEM_H
-#define SYSTEM_H
 
 #include "es_lib/core.h"
 
-#define NODE
+/*
+ * Baud rate of the serial debug port
+ */
+#define SERIAL_BAUD 19200
 
-//#if defined(__XC16__)
+/*
+ * The configuration of the Serial Port there are 3 pins, the Gnd pin is fixed
+ * so you define the configuration of the other two pins. Uncomment as required
+ */
+//#define SERIAL_PORT_GndTxRx
+#define SERIAL_PORT_GndRxTx
 
+/*
+ * Log level. these are defined in es_lib/core.h as they are included everywhere
+ */
 #define LOG_LEVEL LOG_DEBUG
 
 /*
- * Number of timers in the system
+ * NUMBER_OF_TIMERS
+ * 
+ * Definition of the number of system timers required in the system. Increasing 
+ * the number of timers uses more system RAM. This will depend on the estimated
+ * demand for timers in your design.
  */
 #define NUMBER_OF_TIMERS 20
 
-/* 
- * The start of the Application in Flash memory
+/*
+ * CAN Definitions
  */
-#define APP_HANDLE_ADDRESS 0x400
-#define APP_START_ADDRESS  0x18000
-#define CALL_APP_INIT()    asm("call 0x18096")
-#define CALL_APP_MAIN()    asm("call 0x1809A")
+/*
+ * The number of Handlers that can be registered with Layer 2
+ */
+#define CAN
+#define CAN_BAUD_AUTO_DETECT_LISTEN_PERIOD    SECONDS_TO_TICKS(10)
+#define CAN_L2_HANDLER_ARRAY_SIZE 5
+#define CAN_LAYER_3
 
-/** I/O pin definitions ********************************************/
-#define INPUT_PIN 1
-#define OUTPUT_PIN 0
-
-#define TEST
-
+#define CAN_L2_IDLE_PING
+#define CAN_L2_IDLE_PING_FRAME_ID 0x666
+/*
+ * The Ping Period will be between CAN_IDLE_PERIOD - 0.5 Seconds and +0.5 Seconds
+ * As a result this shold probably be greater then 1 Second. If a node picks a 
+ * random value of Zero then it'll do nothing but ping!
+ */
+#define CAN_L2_IDLE_PING_PERIOD     SECONDS_TO_TICKS(2)
 
 /*
- * Define the procesor being used
+ * Android Definitions:
+ *
+ * When using the library Android states one of these switches should be
+ * enabled.
  */
-#if defined( __PIC24FJ256GB110__ )
-#define PIC24FJ256GB110
-#elif defined( __PIC24FJ256GB106__ )
-#define PIC24FJ256GB106
-#endif
+//#define ANDROID_BOOT
+#define ANDROID_NODE
+//#define ANDROID_DONGLE
 
-#define ENABLE_USB
-#define HW_SPI
-#define EEPROM
+/*
+ * If project is to use the BOOT Page of EEPROM then define this option.
+ */
+//#define EEPROM_USE_BOOT_PAGE
 
+/*
+ * Value stored in EEPROM to indicate valid Application Installed.
+ */
 #define APP_VALID_MAGIC_VALUE  0x55
 
-// EEPROM Address MAP
-#define APP_VALID_MAGIC_ADDR   0x00
-#define L3_NODE_ADDRESS_ADDR   0x02
-#define CAN_BAUD_RATE_ADDR     0x03
-#define IO_ADDRESS_ADDR        0x04
-#define NODE_DESCRIPTION_ADDR  0x05
+/*
+ *  EEPROM Address MAP
+ */
+#define EEPROM_APP_VALID_MAGIC_ADDR   0x00  // Magic takes two bytes.
+#define EEPROM_L3_NODE_ADDRESS_ADDR   0x02
+#define EEPROM_CAN_BAUD_RATE_ADDR     0x03
+#define EEPROM_IO_ADDRESS_ADDR        0x04
+#define EEPROM_NODE_DESCRIPTION_ADDR  0x05
 
-#define APP_EEPROM_START  0x40
-#define EEPROM_MAX_ADDRESS 0x7F
-
-//#define CAN
-//#define L2_CAN_INTERRUPT_DRIVEN
-//#define CAN_LAYER_3
-
-#if defined(PIC24FJ256GB110)
-#define CLOCK_FREQ 16000000
-#elif defined(PIC24FJ256GB106)
-#define CLOCK_FREQ 16000000
-#endif
-
-#define SERIAL_BAUD 19200
-
-#if defined(__C30__) || defined(__XC16__)
-#define SPI_RW_FINISHED SPI1STATbits.SPIRBF
-#endif
-
-
-// RP26, RP20 and RP6 are Valid pins so 26, 20 or 6
-//
-// 6 is the Programming port ICSP
-#if defined(PIC24FJ256GB110)
-#define SERIAL_PORT 26
-#elif defined(PIC24FJ256GB106)
-    #define USB_HOST_POWER_PIN_DIRECTION    TRISDbits.TRISD8
-    #define USB_HOST_POWER                  LATDbits.LATD8
-
-
-    #define SERIAL_PORT 20
-
-    /*
-     *  RD1/RP24  - SCK
-     *  RD2       - SO  (Pin 14 of 18 DIP 2515)
-     *  RD3       - SI  (Pin 15 of 18 DIP 2515)
-     *  RD7       - /EEPROM CS
-     *  RD6       - /CAN CS
-     *  RD0       - /CAN INT
-     */
-
-    //  RD7 - /EEPROM CS
-#if defined(EEPROM)
-    #define EEPROM_MAX_ADDRESS 0x7F
-    #define EEPROM_CS_PIN_DIRECTION    TRISDbits.TRISD7
-    #define EEPROM_CS                  LATDbits.LATD7
-
-    #define EEPROM_Select()            EEPROM_CS = 0
-    #define EEPROM_DeSelect()          EEPROM_CS = 1
-#endif
-
-    //  RD0  - /CAN INT
-    #define CAN_INTERRUPT_PIN_DIRECTION    TRISDbits.TRISD0
-    #define CAN_INTERRUPT_PIN                  PORTDbits.RD0
-    #define CAN_INTERRUPT                  !CAN_INTERRUPT_PIN
-
-    //  RD6 - /CAN CS
-    #define CAN_CS_PIN_DIRECTION    TRISDbits.TRISD6
-    #define CAN_CS                  LATDbits.LATD6
-
-    #define CAN_Select()            CAN_CS = 0;
-    #define CAN_DeSelect()          CAN_CS = 1
-
-     //  RD1  - SCK
-     //  RD2  - SO
-     //  RD3  - SI
-    #define SPI_SCK_DIRECTION   TRISDbits.TRISD1
-    #define SPI_MISO_DIRECTION  TRISDbits.TRISD2
-    #define SPI_MOSI_DIRECTION  TRISDbits.TRISD3
-#endif
-
-#if defined(PIC18F4585)
-#define EEPROM_MAX_ADDRESS 0x3ff
-#endif
-
-
-#if defined(PIC24FJ256GB106)
-// HEARTBEAT uses the system timers. This Simple Bootloader doesn't use
-// them. So can't be used.
-//#define HEARTBEAT
-
-#define HEARTBEAT_ON_TIME    SECONDS_TO_TICKS(0x02)
-#define HEARTBEAT_OFF_TIME   SECONDS_TO_TICKS(0x02)
-
-#define HEARTBEAT_PIN_DIRECTION   TRISCbits.TRISC14
-#define HEARTBEAT_PIN             LATCbits.LATC14
-
-#define Heartbeat_on() HEARTBEAT_PIN = 1
-#define Heartbeat_off() HEARTBEAT_PIN = 0
-
-#endif
+/*
+ * Macros for executing Application code.
+ */
+#define CALL_APP_INIT()    asm("call 0x18096")
+#define CALL_APP_MAIN()    asm("call 0x1809A")
 
 #if defined(CAN_LAYER_3)
 extern void get_l3_node_address(u8 *address);
 result_t get_new_l3_node_address(u8 *address);
 #endif
-
-#endif //SYSTEM_H

@@ -25,36 +25,21 @@
 #define MAIN
 #include "main.h"
 #undef MAIN
+#include "es_lib/logger/serial_port.h"
 #define DEBUG_FILE
-#include "es_lib/logger/serial.h"
-#undef DEBUG_FILE
-#include "es_lib/timers/timer_sys.h"
-#include "es_lib/utils/utils.h"
-#include "es_lib/android/states/states.h"
+#include "es_lib/logger/serial_log.h"
+#include "es_lib/timers/timers.h"
 #ifdef CAN
 #include "es_lib/can/es_can.h"
 #endif //CAN
-#include "es_lib/android/android.h"
-#include "es_lib/android/states/states.h"
-#include "os_api.h"
+#include "es_lib/usb/android/android.h"
+#include "es_lib/usb/android/states/states.h"
+#include "es_lib/os/os_api.h"
 
 #include "usb/usb.h"
 #include "usb/usb_host_android.h"
 
-
-// Configuration bits for the device.  Please refer to the device datasheet for each device
-//   to determine the correct configuration bit settings
-//
-// See /opt/microchip/mplabc30/v3.30c/support/PIC24F/h/p24FJ64GB106.h
-//
-// Configuration bits for the device.  Please refer to the device datasheet for each device
-//   to determine the correct configuration bit settings
-#if defined(PIC24FJ256GB110)
-_CONFIG2(FNOSC_PRIPLL & POSCMOD_HS & PLL_96MHZ_ON & PLLDIV_DIV2) // Primary HS OSC with PLL, USBPLL /2
-#elif defined(PIC24FJ256GB106)
-_CONFIG2(FNOSC_FRCPLL & POSCMOD_NONE & OSCIOFNC_ON & PLL_96MHZ_ON & PLLDIV_NODIV & DISUVREG_OFF)  // CLOCK 16000000
-#endif
-_CONFIG1(JTAGEN_OFF & FWDTEN_ON & FWPSA_PR32 & WDTPS_PS1024 & WINDIS_OFF & ICS_PGx2)   // JTAG off, watchdog timer on
+#include "es_lib/firmware/firmware.h"
 
 
 #define TAG "MAIN"
@@ -69,14 +54,14 @@ static void process_msg_from_android(void);
 
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
 {
-	DEBUG_E("Address error");
+	LOG_E("Address error");
 	while (1) {
 	}
 }
 
 void _ISR __attribute__((__no_auto_psv__)) _StackError(void)
 {
-	DEBUG_E("Stack error");
+	LOG_E("Stack error");
 	while (1)  {
 	}
 }
@@ -119,44 +104,44 @@ int main(void)
         BYTE magic_1;
         BYTE magic_2;
 
-        USB_HOST_POWER_PIN_DIRECTION = OUTPUT_PIN;
-
 	serial_init();
-	spi_init();
 
-	DEBUG_D("************************\n\r");
-	DEBUG_D("***   CAN Bus Node   ***\n\r");
-	DEBUG_D("************************\n\r");
+	LOG_D("************************\n\r");
+	LOG_D("***   CAN Bus Node   ***\n\r");
+	LOG_D("************************\n\r");
+        random_init();
+        spi_init();
 
-        psv_strcpy(manufacturer, app_author, 40);
-        DEBUG_D("App Author:%s strlen %d\n\r", manufacturer, strlen(manufacturer));
-
-        if(RCONbits.WDTO){
-		DEBUG_E("Watch Dog Reset!!!\n\r");
+        if(RCONbits.WDTO) {
+            LOG_E("Watch Dog Reset!\n\r");
         }
 
-        if(RCONbits.WDTO || strlen(manufacturer) == 0) {
-		asm ("CLRWDT");
-		eeprom_write(APP_VALID_MAGIC_ADDR, 0x00);
-		eeprom_write(APP_VALID_MAGIC_ADDR + 1, 0x00);
-		DEBUG_I("Applicaiton is NOT Valid WDT or Bad String!\n\r");
+        psv_strcpy(manufacturer, firmware_author, 40);
+        LOG_D("App Author:%s strlen %d\n\r", manufacturer, strlen(manufacturer));
+
+        asm ("CLRWDT");
+
+        if(strlen(manufacturer) == 0) {
+		eeprom_write(EEPROM_APP_VALID_MAGIC_ADDR, 0x00);
+		eeprom_write(EEPROM_APP_VALID_MAGIC_ADDR + 1, 0x00);
+		LOG_I("Applicaiton is NOT Valid Bad String!\n\r");
                 app_valid = FALSE;
         } else {
-		asm ("CLRWDT");
-		eeprom_read(APP_VALID_MAGIC_ADDR, &magic_1);
-		eeprom_read(APP_VALID_MAGIC_ADDR + 1, &magic_2);
-		DEBUG_D("Read Magic 1 0x%x-0x%x\n\r", magic_1, APP_VALID_MAGIC_VALUE);
-		DEBUG_D("Read Magic 2 0x%x-0x%x\n\r", magic_2, (u8)(~APP_VALID_MAGIC_VALUE));
+		eeprom_read(EEPROM_APP_VALID_MAGIC_ADDR, &magic_1);
+		eeprom_read(EEPROM_APP_VALID_MAGIC_ADDR + 1, &magic_2);
+		LOG_D("Read Magic 1 0x%x-0x%x\n\r", magic_1, APP_VALID_MAGIC_VALUE);
+		LOG_D("Read Magic 2 0x%x-0x%x\n\r", magic_2, (u8)(~APP_VALID_MAGIC_VALUE));
 		if(  (magic_1 == APP_VALID_MAGIC_VALUE)
 		   &&(magic_2 == (u8)(~APP_VALID_MAGIC_VALUE)) ) {
 			app_valid = TRUE;
-			DEBUG_I("Applicaiton is Valid\n\r");
+			LOG_I("Applicaiton is Valid\n\r");
 		} else {
-			DEBUG_I("Applicaiton is NOT Valid Bad Magic! 0x%x-0x%x\n\r", magic_1, magic_2);
+			LOG_I("Applicaiton is NOT Valid Bad Magic! 0x%x-0x%x\n\r", magic_1, magic_2);
 			app_valid = FALSE;
 		}
         }
-	/*
+
+        /*
 	 * Reset the Watch Dog timer flag so we can detect the next one.
 	 */
         RCONbits.WDTO = 0;
@@ -167,11 +152,12 @@ int main(void)
 	HEARTBEAT_LED_DIRECTION = OUTPUT_PIN;
 	heartbeat_off((BYTE *)NULL);
 #endif
-	init_timer();
+	timer_init();
 	android_init();
 
 	asm ("CLRWDT");
-	/*
+
+        /*
 	 * Initialise the OS structures.
 	 */
 	os_init_data();
@@ -187,19 +173,19 @@ int main(void)
 	 * Set up the details that we're going to pass to a connected Android
 	 * Device.
 	 */
-	strcpypgmtoram(manufacturer, hardware_manufacturer, 24);
-	strcpypgmtoram(model, hardware_model, 24);
-	strcpypgmtoram(description, hardware_description, 50);
-	strcpypgmtoram(version, bootcode_version, 10);
-	strcpypgmtoram(uri, firmware_uri, 50);
+	psv_strcpy(manufacturer, hardware_manufacturer, 24);
+	psv_strcpy(model, hardware_model, 24);
+	psv_strcpy(description, hardware_description, 50);
+	psv_strcpy(version, bootcode_version, 10);
+	psv_strcpy(uri, firmware_uri, 50);
 
-	DEBUG_D("manufacturer - %s\n\r", manufacturer);
-	DEBUG_D("model - %s\n\r", model);
-	DEBUG_D("description -%s\n\r", description);
-	DEBUG_D("version - %s\n\r", version);
-	DEBUG_D("uri - %s\n\r", uri);
+	LOG_D("manufacturer - %s\n\r", manufacturer);
+	LOG_D("model - %s\n\r", model);
+	LOG_D("description -%s\n\r", description);
+	LOG_D("version - %s\n\r", version);
+	LOG_D("uri - %s\n\r", uri);
 
-        DEBUG_D("Setup android Device Info\n\r");
+        LOG_D("Setup android Device Info\n\r");
 	android_device_info.manufacturer = manufacturer;
 	android_device_info.manufacturer_size = sizeof(manufacturer);
 	android_device_info.model = model;
@@ -215,8 +201,7 @@ int main(void)
 	/*
 	 * Turn on the power to the USB Port as we're going to use Host Mode
 	 */
-	USB_HOST_POWER_PIN_DIRECTION = OUTPUT_PIN;
-	USB_HOST_POWER = 1;
+	USB_HOST
 
 	/*
 	 * These next two lines call the Microchip USB Stack functions to
@@ -228,11 +213,11 @@ int main(void)
 	asm ("CLRWDT");
 #if defined(CAN)
         /* ToDo sort out baudRate */
-        eeprom_read(CAN_BAUD_RATE_ADDR, (BYTE *) & baud_rate);
+        eeprom_read(EEPROM_CAN_BAUD_RATE_ADDR, (BYTE *) & baud_rate);
         if(baud_rate >= no_baud) {
 		baud_rate = baud_10K;
-		DEBUG_W("No CAN Baud Rate set so storing 10KBit/s\n\r");
-		eeprom_write(CAN_BAUD_RATE_ADDR, baud_rate);
+		LOG_W("No CAN Baud Rate set so storing 10KBit/s\n\r");
+		eeprom_write(EEPROM_CAN_BAUD_RATE_ADDR, baud_rate);
         }
 
 	// Send in null we're not defining a default handler for messages
@@ -251,7 +236,7 @@ int main(void)
 	/*
 	 * Enter the main loop
 	 */
-	DEBUG_D("Entering the main loop\n\r");
+	LOG_D("Entering the main loop\n\r");
 	while(TRUE) {
 		asm ("CLRWDT");
 		CHECK_TIMERS();
@@ -260,10 +245,11 @@ int main(void)
 		USBTasks();
 #if defined(CAN)
 		canTasks();
+                asm ("CLRWDT");
 #endif
 		error_code = android_tasks(device_handle);
 		if ((error_code != USB_SUCCESS) && (error_code != USB_ENDPOINT_UNRESOLVED_STATE)) {
-			DEBUG_D("Error from androidPoll %x\n\r", error_code);
+			LOG_D("Error from androidPoll %x\n\r", error_code);
 		}
 
 		/*
@@ -302,7 +288,7 @@ result_t get_new_l3_node_address(u8 *address)
 #if defined(CAN)
 void status_handler(can_status_t status, baud_rate_t baud)
 {
-	DEBUG_D("status_handler(0x%x, 0x%x)\n\r", status, baud);
+	LOG_D("status_handler(0x%x, 0x%x)\n\r", status, baud);
 }
 #endif // CAN
 
@@ -324,7 +310,7 @@ static void process_msg_from_android(void)
 	size = (UINT16)sizeof (read_buffer);
 	while (android_receive((BYTE*) & read_buffer, (UINT16 *)&size, &error_code)) {
 		if (error_code != USB_SUCCESS) {
-			DEBUG_E("android_receive raised an error %x\n\r", error_code);
+			LOG_E("android_receive raised an error %x\n\r", error_code);
 		}
 
 		if (size > 1) {
@@ -336,39 +322,29 @@ static void process_msg_from_android(void)
 		/*
 		 * Pass the received message onto the current state for processing.
 		 */
-		DEBUG_D("Process Received message in State Machine\n\r");
+		LOG_D("Process Received message in State Machine\n\r");
 		current_state.process_msg(read_buffer[0], data, size - 1);
 	}
 }
 
-#if 1
-// Version 2013-12-20  of Microchip Application Libraries
 bool USB_ApplicationDataEventHandler( uint8_t address, USB_EVENT event, void *data, uint32_t size )
-#else
-BOOL USB_ApplicationDataEventHandler ( BYTE address, USB_EVENT event, void *data, DWORD size )
-#endif
 {
 	return FALSE;
 }
 
-#if 1
-// Version 2013-12-20 of Microchip Application Libraries
 bool USB_ApplicationEventHandler( uint8_t address, USB_EVENT event, void *data, uint32_t size )
-#else
-BOOL USB_ApplicationEventHandler( BYTE address, USB_EVENT event, void *data, DWORD size )
-#endif
 {
-	DEBUG_D("USB_ApplicationEventHandler()\n\r");
+	LOG_D("USB_ApplicationEventHandler()\n\r");
 	switch( event) {
         case EVENT_VBUS_REQUEST_POWER:
-		DEBUG_D("EVENT_VBUS_REQUEST_POWER current %d\n\r", ((USB_VBUS_POWER_EVENT_DATA*)data)->current);
+		LOG_D("EVENT_VBUS_REQUEST_POWER current %d\n\r", ((USB_VBUS_POWER_EVENT_DATA*)data)->current);
 		// The data pointer points to a byte that represents the amount of power
 		// requested in mA, divided by two.  If the device wants too much power,
 		// we reject it.
 		if (((USB_VBUS_POWER_EVENT_DATA*)data)->current <= (MAX_ALLOWED_CURRENT / 2)) {
 			return TRUE;
 		} else {
-			DEBUG_E("\r\n***** USB Error - device requires too much current *****\r\n");
+			LOG_E("\r\n***** USB Error - device requires too much current *****\r\n");
 		}
 		break;
 
@@ -384,7 +360,7 @@ BOOL USB_ApplicationEventHandler( BYTE address, USB_EVENT event, void *data, DWO
 		/*
 		 * Pass a Detach event on to the state machine for processing.
 		 */
-		DEBUG_D("Device Detached\n\r");
+		LOG_D("Device Detached\n\r");
 #if defined(MCP_ANDROID)
 		device_attached = FALSE;
 #endif
@@ -398,7 +374,7 @@ BOOL USB_ApplicationEventHandler( BYTE address, USB_EVENT event, void *data, DWO
 		/*
 		 * Pass an Attach even on to the State machine.
 		 */
-		DEBUG_D("Device Attached\n\r");
+		LOG_D("Device Attached\n\r");
 #if defined(MCP_ANDROID)
 		device_attached = TRUE;
 #endif
@@ -408,11 +384,11 @@ BOOL USB_ApplicationEventHandler( BYTE address, USB_EVENT event, void *data, DWO
                 break;
 
         case EVENT_OVERRIDE_CLIENT_DRIVER_SELECTION:
-		DEBUG_D("Ignoring EVENT_OVERRIDE_CLIENT_DRIVER_SELECTION\n\r");
+		LOG_D("Ignoring EVENT_OVERRIDE_CLIENT_DRIVER_SELECTION\n\r");
 		break;
 
         default :
-		DEBUG_W("Unknown Event 0x%x\n\r", event);
+		LOG_W("Unknown Event 0x%x\n\r", event);
 		break;
 	}
 	return FALSE;
