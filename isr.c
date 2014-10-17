@@ -22,9 +22,8 @@
  */
 #include "system.h"
 #define DEBUG_FILE
-#include "es_lib/logger/serial.h"
-#undef DEBUG_FILE
-#include "os_api.h"
+#include "es_lib/logger/serial_log.h"
+#include "es_lib/os/os_api.h"
 
 #define TAG "ISR"
 
@@ -163,7 +162,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _ReservedTrap0(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _ReservedTrap0\n\r");
+        LOG_E("Unexpected Interrupt on _ReservedTrap0\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OscillatorFail(void)
@@ -172,7 +171,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OscillatorFail(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _OscillatorFail\n\r");
+        LOG_E("Unexpected Interrupt on _OscillatorFail\n\r");
 }
 
 /*
@@ -185,7 +184,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _AddressError(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _AddressError\n\r");
+        LOG_E("Unexpected Interrupt on _AddressError\n\r");
 }
 #endif // 0
 
@@ -199,7 +198,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _StackError(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _StackError\n\r");
+        LOG_E("Unexpected Interrupt on _StackError\n\r");
 }
 #endif
 
@@ -209,7 +208,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _MathError(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _MathError\n\r");
+        LOG_E("Unexpected Interrupt on _MathError\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _ReservedTrap5(void)
@@ -218,7 +217,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _ReservedTrap5(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _ReservedTrap5\n\r");
+        LOG_E("Unexpected Interrupt on _ReservedTrap5\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _ReservedTrap6(void)
@@ -227,7 +226,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _ReservedTrap6(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _ReservedTrap6\n\r");
+        LOG_E("Unexpected Interrupt on _ReservedTrap6\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _ReservedTrap7(void)
@@ -236,17 +235,22 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _ReservedTrap7(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _ReservedTrap7\n\r");
+        LOG_E("Unexpected Interrupt on _ReservedTrap7\n\r");
 }
 
+/*
+ * INT0 is used by the MCP2515 CAN Driver
+ */
+#if 0
 void __attribute__((__interrupt__, __no_auto_psv__)) _INT0Interrupt(void)
 {
     void (*isr)(void) = (void (*)(void))INT0_INTERRUPT;
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _INT0Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _INT0Interrupt\n\r");
 }
+#endif
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _IC1Interrupt(void)
 {
@@ -254,7 +258,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _IC1Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _IC1Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _IC1Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OC1Interrupt(void)
@@ -263,7 +267,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC1Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _OC1Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _OC1Interrupt\n\r");
 }
 
 /*
@@ -276,7 +280,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T1Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _T1Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _T1Interrupt\n\r");
 }
 #endif
 
@@ -286,7 +290,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt4(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _Interrupt4\n\r");
+        LOG_E("Unexpected Interrupt on _Interrupt4\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _IC2Interrupt(void)
@@ -295,7 +299,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _IC2Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _IC2Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _IC2Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OC2Interrupt(void)
@@ -304,7 +308,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC2Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _OC2Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _OC2Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _T2Interrupt(void)
@@ -313,7 +317,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T2Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _T2Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _T2Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _T3Interrupt(void)
@@ -322,7 +326,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T3Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _T3Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _T3Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1ErrInterrupt(void)
@@ -331,7 +335,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1ErrInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _SPI1ErrInterrupt\n\r");
+        LOG_E("Unexpected Interrupt on _SPI1ErrInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1Interrupt(void)
@@ -340,7 +344,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _SPI1Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _SPI1Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U1RXInterrupt(void)
@@ -349,7 +353,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U1RXInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _U1RXInterrupt\n\r");
+        LOG_E("Unexpected Interrupt on _U1RXInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U1TXInterrupt(void)
@@ -358,7 +362,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U1TXInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _U1TXInterrupt\n\r");
+        LOG_E("Unexpected Interrupt on _U1TXInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _ADC1Interrupt(void)
@@ -367,7 +371,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _ADC1Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _ADC1Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _ADC1Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt14(void)
@@ -376,7 +380,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt14(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _Interrupt14\n\r");
+        LOG_E("Unexpected Interrupt on _Interrupt14\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt15(void)
@@ -385,7 +389,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt15(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _Interrupt15\n\r");
+        LOG_E("Unexpected Interrupt on _Interrupt15\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _SI2C1Interrupt(void)
@@ -394,7 +398,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SI2C1Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _SI2C1Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _SI2C1Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _MI2C1Interrupt(void)
@@ -403,7 +407,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _MI2C1Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _MI2C1Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _MI2C1Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _CompInterrupt(void)
@@ -412,7 +416,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _CompInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _CompInterrupt\n\r");
+        LOG_E("Unexpected Interrupt on _CompInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _CNInterrupt(void)
@@ -421,7 +425,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _CNInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _CNInterrupt\n\r");
+        LOG_E("Unexpected Interrupt on _CNInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _INT1Interrupt(void)
@@ -430,7 +434,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _INT1Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _INT1Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _INT1Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt21(void)
@@ -439,7 +443,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt21(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _Interrupt21\n\r");
+        LOG_E("Unexpected Interrupt on _Interrupt21\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _IC7Interrupt(void)
@@ -448,7 +452,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _IC7Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _IC7Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _IC7Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _IC8Interrupt(void)
@@ -457,7 +461,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _IC8Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _IC8Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _IC8Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt24(void)
@@ -466,7 +470,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt24(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _Interrupt24\n\r");
+        LOG_E("Unexpected Interrupt on _Interrupt24\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OC3Interrupt(void)
@@ -475,7 +479,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC3Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _OC3Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _OC3Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OC4Interrupt(void)
@@ -484,7 +488,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC4Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _OC4Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _OC4Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _T4Interrupt(void)
@@ -493,7 +497,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T4Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _T4Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _T4Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _T5Interrupt(void)
@@ -502,7 +506,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T5Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _T5Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _T5Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _INT2Interrupt(void)
@@ -511,7 +515,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _INT2Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _INT2Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _INT2Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2RXInterrupt(void)
@@ -520,7 +524,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U2RXInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _U2RXInterrupt\n\r");
+        LOG_E("Unexpected Interrupt on _U2RXInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
@@ -529,7 +533,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U2TXInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _U2TXInterrupt\n\r");
+        LOG_E("Unexpected Interrupt on _U2TXInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _SPI2ErrInterrupt(void)
@@ -538,7 +542,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI2ErrInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _SPI2ErrInterrupt\n\r");
+        LOG_E("Unexpected Interrupt on _SPI2ErrInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _SPI2Interrupt(void)
@@ -547,7 +551,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI2Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected Interrupt on _SPI2Interrupt\n\r");
+        LOG_E("Unexpected Interrupt on _SPI2Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt34(void)
@@ -556,7 +560,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt34(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt34\n\r");
+        LOG_E("Unexpected ISR _Interrupt34\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt35(void)
@@ -565,7 +569,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt35(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt35\n\r");
+        LOG_E("Unexpected ISR _Interrupt35\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt36(void)
@@ -574,7 +578,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt36(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt36\n\r");
+        LOG_E("Unexpected ISR _Interrupt36\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _IC3Interrupt(void)
@@ -583,7 +587,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _IC3Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _IC3Interrupt\n\r");
+        LOG_E("Unexpected ISR _IC3Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _IC4Interrupt(void)
@@ -592,7 +596,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _IC4Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _IC4Interrupt\n\r");
+        LOG_E("Unexpected ISR _IC4Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _IC5Interrupt(void)
@@ -601,7 +605,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _IC5Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _IC5Interrupt\n\r");
+        LOG_E("Unexpected ISR _IC5Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _IC6Interrupt(void)
@@ -610,7 +614,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _IC6Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _IC6Interrupt\n\r");
+        LOG_E("Unexpected ISR _IC6Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OC5Interrupt(void)
@@ -619,7 +623,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC5Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _OC5Interrupt\n\r");
+        LOG_E("Unexpected ISR _OC5Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OC6Interrupt(void)
@@ -628,7 +632,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC6Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _OC6Interrupt\n\r");
+        LOG_E("Unexpected ISR _OC6Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OC7Interrupt(void)
@@ -637,7 +641,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC7Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _OC7Interrupt\n\r");
+        LOG_E("Unexpected ISR _OC7Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OC8Interrupt(void)
@@ -646,7 +650,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC8Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _OC8Interrupt\n\r");
+        LOG_E("Unexpected ISR _OC8Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _PMPInterrupt(void)
@@ -655,7 +659,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _PMPInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _PMPInterrupt\n\r");
+        LOG_E("Unexpected ISR _PMPInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt46(void)
@@ -664,7 +668,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt46(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt46\n\r");
+        LOG_E("Unexpected ISR _Interrupt46\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt47(void)
@@ -673,7 +677,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt47(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt47\n\r");
+        LOG_E("Unexpected ISR _Interrupt47\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt48(void)
@@ -682,7 +686,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt48(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt48\n\r");
+        LOG_E("Unexpected ISR _Interrupt48\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _SI2C2Interrupt(void)
@@ -691,7 +695,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SI2C2Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _SI2C2Interrupt\n\r");
+        LOG_E("Unexpected ISR _SI2C2Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _MI2C2Interrupt(void)
@@ -700,7 +704,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _MI2C2Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _MI2C2Interrupt\n\r");
+        LOG_E("Unexpected ISR _MI2C2Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt51(void)
@@ -709,7 +713,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt51(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt51\n\r");
+        LOG_E("Unexpected ISR _Interrupt51\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt52(void)
@@ -718,7 +722,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt52(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt52\n\r");
+        LOG_E("Unexpected ISR _Interrupt52\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _INT3Interrupt(void)
@@ -727,7 +731,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _INT3Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _INT3Interrupt\n\r");
+        LOG_E("Unexpected ISR _INT3Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _INT4Interrupt(void)
@@ -736,7 +740,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _INT4Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _INT4Interrupt\n\r");
+        LOG_E("Unexpected ISR _INT4Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt55(void)
@@ -745,7 +749,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt55(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt55\n\r");
+        LOG_E("Unexpected ISR _Interrupt55\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt56(void)
@@ -754,7 +758,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt56(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt56\n\r");
+        LOG_E("Unexpected ISR _Interrupt56\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt57(void)
@@ -763,7 +767,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt57(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt57\n\r");
+        LOG_E("Unexpected ISR _Interrupt57\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt58(void)
@@ -772,7 +776,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt58(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt58\n\r");
+        LOG_E("Unexpected ISR _Interrupt58\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt59(void)
@@ -781,7 +785,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt59(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt59\n\r");
+        LOG_E("Unexpected ISR _Interrupt59\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt60(void)
@@ -790,7 +794,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt60(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt60\n\r");
+        LOG_E("Unexpected ISR _Interrupt60\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt61(void)
@@ -799,7 +803,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt61(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt61\n\r");
+        LOG_E("Unexpected ISR _Interrupt61\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _RTCCInterrupt(void)
@@ -808,7 +812,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _RTCCInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _RTCCInterrupt\n\r");
+        LOG_E("Unexpected ISR _RTCCInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt63(void)
@@ -817,7 +821,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt63(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt63\n\r");
+        LOG_E("Unexpected ISR _Interrupt63\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt64(void)
@@ -826,7 +830,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt64(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt64\n\r");
+        LOG_E("Unexpected ISR _Interrupt64\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U1ErrInterrupt(void)
@@ -835,7 +839,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U1ErrInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _U1ErrInterrupt\n\r");
+        LOG_E("Unexpected ISR _U1ErrInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U2ErrInterrupt(void)
@@ -844,7 +848,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U2ErrInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _U2ErrInterrupt\n\r");
+        LOG_E("Unexpected ISR _U2ErrInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _CRCInterrupt(void)
@@ -853,7 +857,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _CRCInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _CRCInterrupt\n\r");
+        LOG_E("Unexpected ISR _CRCInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt68(void)
@@ -862,7 +866,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt68(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt68\n\r");
+        LOG_E("Unexpected ISR _Interrupt68\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt69(void)
@@ -871,7 +875,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt69(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt69\n\r");
+        LOG_E("Unexpected ISR _Interrupt69\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt70(void)
@@ -880,7 +884,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt70(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt70\n\r");
+        LOG_E("Unexpected ISR _Interrupt70\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt71(void)
@@ -889,7 +893,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt71(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt71\n\r");
+        LOG_E("Unexpected ISR _Interrupt71\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _LVDInterrupt(void)
@@ -898,7 +902,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _LVDInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _LVDInterrupt\n\r");
+        LOG_E("Unexpected ISR _LVDInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt73(void)
@@ -907,7 +911,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt73(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt73\n\r");
+        LOG_E("Unexpected ISR _Interrupt73\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt74(void)
@@ -916,7 +920,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt74(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt74\n\r");
+        LOG_E("Unexpected ISR _Interrupt74\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt75(void)
@@ -925,7 +929,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt75(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt75\n\r");
+        LOG_E("Unexpected ISR _Interrupt75\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt76(void)
@@ -934,7 +938,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt76(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt76\n\r");
+        LOG_E("Unexpected ISR _Interrupt76\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _CTMUInterrupt(void)
@@ -943,7 +947,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _CTMUInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _CTMUInterrupt\n\r");
+        LOG_E("Unexpected ISR _CTMUInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt78(void)
@@ -952,7 +956,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt78(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt78\n\r");
+        LOG_E("Unexpected ISR _Interrupt78\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt79(void)
@@ -961,7 +965,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt79(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt79\n\r");
+        LOG_E("Unexpected ISR _Interrupt79\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt80(void)
@@ -970,7 +974,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt80(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt80\n\r");
+        LOG_E("Unexpected ISR _Interrupt80\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U3ErrInterrupt(void)
@@ -979,7 +983,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U3ErrInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _U3ErrInterrupt\n\r");
+        LOG_E("Unexpected ISR _U3ErrInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U3RXInterrupt(void)
@@ -988,7 +992,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U3RXInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _U3RXInterrupt\n\r");
+        LOG_E("Unexpected ISR _U3RXInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U3TXInterrupt(void)
@@ -997,7 +1001,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U3TXInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _U3TXInterrupt\n\r");
+        LOG_E("Unexpected ISR _U3TXInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _SI2C3Interrupt(void)
@@ -1006,7 +1010,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SI2C3Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _SI2C3Interrupt\n\r");
+        LOG_E("Unexpected ISR _SI2C3Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _MI2C3Interrupt(void)
@@ -1015,7 +1019,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _MI2C3Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _MI2C3Interrupt\n\r");
+        LOG_E("Unexpected ISR _MI2C3Interrupt\n\r");
 }
 
 /*
@@ -1028,7 +1032,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _USB1Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _USB1Interrupt\n\r");
+        LOG_E("Unexpected ISR _USB1Interrupt\n\r");
 }
 #endif //0
 
@@ -1038,7 +1042,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U4ErrInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _U4ErrInterrupt\n\r");
+        LOG_E("Unexpected ISR _U4ErrInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U4RXInterrupt(void)
@@ -1047,7 +1051,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U4RXInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _U4RXInterrupt\n\r");
+        LOG_E("Unexpected ISR _U4RXInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _U4TXInterrupt(void)
@@ -1056,7 +1060,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U4TXInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _U4TXInterrupt\n\r");
+        LOG_E("Unexpected ISR _U4TXInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _SPI3ErrInterrupt(void)
@@ -1065,7 +1069,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI3ErrInterrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _SPI3ErrInterrupt\n\r");
+        LOG_E("Unexpected ISR _SPI3ErrInterrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _SPI3Interrupt(void)
@@ -1074,7 +1078,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI3Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _SPI3Interrupt\n\r");
+        LOG_E("Unexpected ISR _SPI3Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _OC9Interrupt(void)
@@ -1083,7 +1087,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC9Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _OC9Interrupt\n\r");
+        LOG_E("Unexpected ISR _OC9Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _IC9Interrupt(void)
@@ -1092,7 +1096,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _IC9Interrupt(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _IC9Interrupt\n\r");
+        LOG_E("Unexpected ISR _IC9Interrupt\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt94(void)
@@ -1101,7 +1105,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt94(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt94\n\r");
+        LOG_E("Unexpected ISR _Interrupt94\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt95(void)
@@ -1110,7 +1114,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt95(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt95\n\r");
+        LOG_E("Unexpected ISR _Interrupt95\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt96(void)
@@ -1119,7 +1123,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt96(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt96\n\r");
+        LOG_E("Unexpected ISR _Interrupt96\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt97(void)
@@ -1128,7 +1132,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt97(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt97\n\r");
+        LOG_E("Unexpected ISR _Interrupt97\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt98(void)
@@ -1137,7 +1141,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt98(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt98\n\r");
+        LOG_E("Unexpected ISR _Interrupt98\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt99(void)
@@ -1146,7 +1150,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt99(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt99\n\r");
+        LOG_E("Unexpected ISR _Interrupt99\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt100(void)
@@ -1155,7 +1159,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt100(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt100\n\r");
+        LOG_E("Unexpected ISR _Interrupt100\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt101(void)
@@ -1164,7 +1168,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt101(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt101\n\r");
+        LOG_E("Unexpected ISR _Interrupt101\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt102(void)
@@ -1173,7 +1177,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt102(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt102\n\r");
+        LOG_E("Unexpected ISR _Interrupt102\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt103(void)
@@ -1182,7 +1186,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt103(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt103\n\r");
+        LOG_E("Unexpected ISR _Interrupt103\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt104(void)
@@ -1191,7 +1195,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt104(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt104\n\r");
+        LOG_E("Unexpected ISR _Interrupt104\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt105(void)
@@ -1200,7 +1204,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt105(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt105\n\r");
+        LOG_E("Unexpected ISR _Interrupt105\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt106(void)
@@ -1209,7 +1213,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt106(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt106\n\r");
+        LOG_E("Unexpected ISR _Interrupt106\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt107(void)
@@ -1218,7 +1222,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt107(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt107\n\r");
+        LOG_E("Unexpected ISR _Interrupt107\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt108(void)
@@ -1227,7 +1231,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt108(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt108\n\r");
+        LOG_E("Unexpected ISR _Interrupt108\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt109(void)
@@ -1236,7 +1240,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt109(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt109\n\r");
+        LOG_E("Unexpected ISR _Interrupt109\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt110(void)
@@ -1245,7 +1249,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt110(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt110\n\r");
+        LOG_E("Unexpected ISR _Interrupt110\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt111(void)
@@ -1254,7 +1258,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt111(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt111\n\r");
+        LOG_E("Unexpected ISR _Interrupt111\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt112(void)
@@ -1263,7 +1267,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt112(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt112\n\r");
+        LOG_E("Unexpected ISR _Interrupt112\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt113(void)
@@ -1272,7 +1276,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt113(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt113\n\r");
+        LOG_E("Unexpected ISR _Interrupt113\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt114(void)
@@ -1281,7 +1285,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt114(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt114\n\r");
+        LOG_E("Unexpected ISR _Interrupt114\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt115(void)
@@ -1290,7 +1294,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt115(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt115\n\r");
+        LOG_E("Unexpected ISR _Interrupt115\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt116(void)
@@ -1299,7 +1303,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt116(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt116\n\r");
+        LOG_E("Unexpected ISR _Interrupt116\n\r");
 }
 
 void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt117(void)
@@ -1308,5 +1312,5 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _Interrupt117(void)
     if(app_valid)
         isr();
     else
-        DEBUG_E("Unexpected ISR _Interrupt117\n\r");
+        LOG_E("Unexpected ISR _Interrupt117\n\r");
 }
