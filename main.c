@@ -19,28 +19,66 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "es_lib/core.h"
 #include "system.h"
 #include <stdio.h>
-#define MAIN
-#include "main.h"
-#undef MAIN
+//#define MAIN
+//#include "main.h"
+//#undef MAIN
 #include "es_lib/logger/serial_port.h"
 #define DEBUG_FILE
 #include "es_lib/logger/serial_log.h"
-#include "es_lib/timers/timers.h"
-#ifdef CAN
-#include "es_lib/can/es_can.h"
-#endif //CAN
-#include "es_lib/usb/android/android.h"
-#include "es_lib/usb/android/states/states.h"
-#include "es_lib/os/os_api.h"
 
+#include "es_lib/timers/timers.h"
+#include "es_lib/can/es_can.h"
+#include "es_lib/usb/android/android.h"
+#include "es_lib/usb/android/android_state.h"
+#include "es_lib/usb/android/states/states.h"
+#include "es_lib/utils/eeprom.h"
+#include "es_lib/utils/spi.h"
+#include "es_lib/utils/flash.h"
+#include "es_lib/utils/rand.h"
+#include "os/os_api.h"
+
+/*
+ *  Microchip USB Includes
+ */
 #include "usb/usb.h"
 #include "usb/usb_host_android.h"
 
 #include "es_lib/firmware/firmware.h"
 
+DEF_FIRMWARE_AUTHOR_40("me@mail.com")
+DEF_FIRMWARE_DESCRIPTION_50("Serial_Firmware")
+DEF_FIRMWARE_VERSION_10("v1.0")
+DEF_FIRMWARE_URL_50("www.test.com")
+
+//
+// Hardware Info
+//
+// This memory will not be copied across with the app to the Hardware but
+// is hear to allow us to build.
+//
+#define HARDWARE_INFO_BASE 0x200
+
+__prog__ char hardware_manufacturer[24] __attribute__ ((space(prog),address(HARDWARE_INFO_BASE))) = "electronicSoup";
+__prog__ char hardware_model[24]        __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24))) = "Cinnamon Bun";
+__prog__ char hardware_description[50]  __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24))) = "CAN Bus Node dev Platform";
+__prog__ char hardware_version[10]      __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50))) = "1.0.0";
+__prog__ char hardware_uri[50]          __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10))) = "http://www.electronicsoup.com/cinnamon_bun";
+//
+// Bootloader Info
+//
+__prog__ char bootcode_author[40]       __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50))) = "electronicSoup";
+__prog__ char bootcode_description[50]  __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50 + 40))) = "Android Bootloader";
+__prog__ char bootcode_version[10]      __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50 + 40 + 50))) = "1.0.0";
+__prog__ char bootcode_uri[50]          __attribute__ ((space(prog),address(HARDWARE_INFO_BASE + 24 + 24 + 50 + 10 + 50 + 40 + 50 + 10))) = "http://www.electronicsoup.com/bootloader";
+
+#define APPLICATION_STRINGS_BASE 0x18000
+
+__prog__ char app_author[40] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE)));
+__prog__ char app_software[50] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE + 40)));
+__prog__ char app_version[10] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE + 40 + 50)));
+__prog__ char app_uri[50] __attribute__((space(prog), address(APPLICATION_STRINGS_BASE + 40 + 50 + 10)));
 
 #define TAG "MAIN"
 
@@ -49,8 +87,6 @@ static u8 l3_address = 1;
 void get_l3_node_address(u8 *address);
 result_t get_new_l3_node_address(u8 *address);
 #endif
-
-static void process_msg_from_android(void);
 
 void _ISR __attribute__((__no_auto_psv__)) _AddressError(void)
 {
@@ -207,7 +243,6 @@ int main(void)
 	 * These next two lines call the Microchip USB Stack functions to
 	 * initialise the USB Host and Android functionality
 	 */
-	USBInitialize(0);
 	AndroidAppStart(&android_device_info);
 
 	asm ("CLRWDT");
@@ -252,16 +287,6 @@ int main(void)
 			LOG_D("Error from androidPoll %x\n\r", error_code);
 		}
 
-		/*
-		 * Check for any messages from the Android device.
-		 */
-		process_msg_from_android();
-
-                /*
-                 * Do whatever functionality is required of the current state.
-                 */
-		current_state.main();
-
                 if(app_valid) {
 			CALL_APP_MAIN();
                 }
@@ -271,7 +296,7 @@ int main(void)
 #if defined(CAN_LAYER_3)
 void get_l3_node_address(u8 *address)
 {
-        eeprom_read(L3_NODE_ADDRESS_ADDR, address);
+        eeprom_read(EEPROM_L3_NODE_ADDRESS_ADDR, address);
 }
 #endif
 
@@ -291,41 +316,6 @@ void status_handler(can_status_t status, baud_rate_t baud)
 	LOG_D("status_handler(0x%x, 0x%x)\n\r", status, baud);
 }
 #endif // CAN
-
-/*!
- * \fn void process_msg_from_android(void)
- *
- * \brief processes messages from the android device
- *
- * This function polls the system for messages from the Android device
- */
-static void process_msg_from_android(void)
-{
-	UINT16 size = 0;
-	BYTE read_buffer[300];
-	BYTE error_code = USB_SUCCESS;
-
-	void *data = NULL;
-
-	size = (UINT16)sizeof (read_buffer);
-	while (android_receive((BYTE*) & read_buffer, (UINT16 *)&size, &error_code)) {
-		if (error_code != USB_SUCCESS) {
-			LOG_E("android_receive raised an error %x\n\r", error_code);
-		}
-
-		if (size > 1) {
-			data = (void *) &read_buffer[1];
-		} else {
-			data = NULL;
-		}
-
-		/*
-		 * Pass the received message onto the current state for processing.
-		 */
-		LOG_D("Process Received message in State Machine\n\r");
-		current_state.process_msg(read_buffer[0], data, size - 1);
-	}
-}
 
 bool USB_ApplicationDataEventHandler( uint8_t address, USB_EVENT event, void *data, uint32_t size )
 {

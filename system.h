@@ -85,6 +85,14 @@
 //#define EEPROM_USE_BOOT_PAGE
 
 /*
+ *******************************************************************************
+ *
+ * Project Specific Defines
+ *
+ *******************************************************************************
+ */
+
+/*
  * Value stored in EEPROM to indicate valid Application Installed.
  */
 #define APP_VALID_MAGIC_VALUE  0x55
@@ -97,6 +105,17 @@
 #define EEPROM_CAN_BAUD_RATE_ADDR     0x03
 #define EEPROM_IO_ADDRESS_ADDR        0x04
 #define EEPROM_NODE_DESCRIPTION_ADDR  0x05
+
+/*
+ * The Installed Application can use EEPROM from this address.
+ */
+#define APP_EEPROM_START  0x40
+
+/* 
+ * Application addresses in Flash memory
+ */
+#define APP_HANDLE_FLASH_ADDRESS 0x400
+#define APP_START_FLASH_ADDRESS  0x18000
 
 /*
  * Macros for executing Application code.

@@ -23,7 +23,7 @@
 #include "system.h"
 #define DEBUG_FILE
 #include "es_lib/logger/serial_log.h"
-#include "es_lib/os/os_api.h"
+#include "os/os_api.h"
 
 #define TAG "ISR"
 
