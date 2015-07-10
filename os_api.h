@@ -26,8 +26,7 @@
 
 extern BOOL app_valid;
 
-extern void     os_init_data(void);
-extern result_t os_cancel_all_timers(void);
-extern void     os_clear_app_eeprom(void);
+extern void  os_init_data(void);
+extern void  os_remove_current_app(void);
 
 #endif //_OS_H

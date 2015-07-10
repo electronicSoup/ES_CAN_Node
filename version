@@ -1,9 +1,0 @@
-# ~/bin/libver
-# es_lib
-commit f953c4557256a9603cc78f7514f96ae7683830c1
-Author: John Whitmore <johnfwhitmore@gmail.com>
-Date:   Mon May 19 17:35:55 2014 +0100
-
-    Moved the OS files in the library.
-    
-    Signed-off-by: John Whitmore <johnfwhitmore@gmail.com>
