@@ -45,8 +45,10 @@
 /*
  *  Microchip USB Includes
  */
-#include "usb/usb.h"
-#include "usb/usb_host_android.h"
+//#include "usb/usb.h"
+//#include "usb/usb_host_android.h"
+#include "usb/inc/usb.h"
+#include "usb/inc/usb_host_android.h"
 
 #include "es_lib/firmware/firmware.h"
 

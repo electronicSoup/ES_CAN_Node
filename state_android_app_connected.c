@@ -23,8 +23,10 @@
  */
 #include <stdio.h>
 #include "system.h"
-#include "usb/usb.h"
-#include "usb/usb_host_android.h"
+//#include "usb/usb.h"
+//#include "usb/usb_host_android.h"
+#include "usb/inc/usb.h"
+#include "usb/inc/usb_host_android.h"
 #include "es_lib/usb/android/state.h"
 #include "es_lib/usb/android/state_idle.h"
 #include "es_lib/utils/flash.h"
