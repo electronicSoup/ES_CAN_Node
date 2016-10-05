@@ -32,7 +32,7 @@
 /*
  * Baud rate of the serial debug port
  */
-#define SERIAL_BAUD 19200
+#define SERIAL_LOGGING_BAUD 19200
 
 /*
  * The configuration of the Serial Port there are 3 pins, the Gnd pin is fixed

@@ -67,7 +67,7 @@ os_can_l2_handler os_can_l2_handlers[CAN_L2_HANDLER_ARRAY_SIZE];
 #endif // CAN
 
 /*
- * Have to keep a track of ISO-15765 handers being used by the applicaton 
+ * Have to keep a track of ISO-15765 handers being used by the applicaton
  * in order to remove them if the APP is uninstalled.
  */
 typedef struct {
@@ -135,7 +135,7 @@ void exp_os_timer(timer_t timer_id, union sigval data)
 /*
 ** start_timer
  */
-result_t os_timer_start(UINT16 ticks,
+result_t os_timer_start(u16 ticks,
 	expiry_function function,
         union sigval data,
         es_timer *timer)
@@ -189,9 +189,9 @@ static result_t os_cancel_all_timers(void)
 /*
 ** os_eeprom_read
 */
-result_t os_eeprom_read(UINT16 address, BYTE *data)
+result_t os_eeprom_read(u16 address, u8 *data)
 {
-	UINT16 eeprom_address;
+	u16 eeprom_address;
 
 	eeprom_address = APP_EEPROM_START + address;
 	if (eeprom_address <= EEPROM_MAX_ADDRESS) {
@@ -205,7 +205,7 @@ result_t os_eeprom_read(UINT16 address, BYTE *data)
 /*
 ** os_eeprom_write
 */
-result_t os_eeprom_write(u16 address, BYTE data)
+result_t os_eeprom_write(u16 address, u8 data)
 {
 	u16 eeprom_address;
 
@@ -294,7 +294,7 @@ void os_clear_all_can_l2_handlers()
 			os_can_l2_handlers[loop].active = 0x00;
 		}
 	}
-	
+
 	can_l2_dispatch_set_unhandled_handler((can_l2_frame_handler_t)NULL);
 #endif //CAN
 }
@@ -486,7 +486,7 @@ static void os_clear_all_iso11783_handlers()
 result_t os_serial_log(log_level_t level, char* tag, char* fmt, ...)
 {
 	va_list args;
-	UINT16 psv_page;
+	u16 psv_page;
 	auto char colon[] = ":";
 
 	switch (level) {
@@ -542,7 +542,7 @@ result_t os_get_io_address(u8 *address)
 	return (SUCCESS);
 }
 
-result_t os_flash_strcpy(char *dst, __prog__ char *src, UINT16 *length)
+result_t os_flash_strcpy(char *dst, __prog__ char *src, u16 *length)
 {
 	LOG_D("os_flash_strcpy()\n\r");
 	return(flash_strcpy(dst, src, length));

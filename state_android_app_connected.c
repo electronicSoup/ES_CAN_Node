@@ -40,7 +40,7 @@
 
 #define TAG "Android-NodeConnected"
 
-void app_connected_process_msg(BYTE, void *, UINT16);
+void app_connected_process_msg(u8, void *, u16);
 void app_connected_main(void);
 void app_connected_process_usb_event(USB_EVENT event);
 
@@ -63,13 +63,13 @@ void set_app_connected_state(void)
 	android_state.process_usb_event = app_connected_process_usb_event;
 }
 
-void app_connected_process_msg(BYTE cmd, void *data, UINT16 data_len)
+void app_connected_process_msg(u8 cmd, void *data, u16 data_len)
 {
-	UINT32 address;
-	BYTE *byte_data;
-	UINT8 loop;
+	u32 address;
+	u8 *byte_data;
+	u8 loop;
 	result_t rc;
-	UINT16 length;
+	u16 length;
 
 	switch (cmd) {
 		case APP_MSG_FLASH_REPROGRAM:
@@ -89,7 +89,7 @@ void app_connected_process_msg(BYTE cmd, void *data, UINT16 data_len)
 
 		case APP_MSG_FLASH_ERASE_PAGE:
 			if (data != NULL) {
-				byte_data = (BYTE *) data;
+				byte_data = (u8 *) data;
 
 				address = 0x00;
 				for (loop = 0; loop < 4; loop++) {
@@ -114,7 +114,7 @@ void app_connected_process_msg(BYTE cmd, void *data, UINT16 data_len)
 
 		case APP_MSG_FLASH_WRITE_ROW:
 			if (data != NULL) {
-				byte_data = (BYTE *) data;
+				byte_data = (u8 *) data;
 
 				address = 0x00;
 				for (loop = 0; loop < 4; loop++) {
@@ -145,7 +145,7 @@ void app_connected_process_msg(BYTE cmd, void *data, UINT16 data_len)
 			if (eeprom_write(EEPROM_APP_VALID_MAGIC_ADDR_1, APP_VALID_MAGIC_VALUE) != SUCCESS) {
 				LOG_E("Bad EEPROM Write\n\r");
 			}
-			if (eeprom_write(EEPROM_APP_VALID_MAGIC_ADDR_2, (BYTE) (~APP_VALID_MAGIC_VALUE)) != SUCCESS) {
+			if (eeprom_write(EEPROM_APP_VALID_MAGIC_ADDR_2, (u8) (~APP_VALID_MAGIC_VALUE)) != SUCCESS) {
 				LOG_E("BAD EEPROM Write\n\r");
 			}
 
@@ -192,7 +192,7 @@ void app_connected_process_msg(BYTE cmd, void *data, UINT16 data_len)
 			break;
 
 		case APP_NODE_CONFIG_INFO_UPDATE:
-			byte_data = (BYTE *) data;
+			byte_data = (u8 *) data;
 			LOG_D("NODE_CONFIG_UPDATE\n\r");
 			LOG_D("data[0] = 0x%x\n\r", byte_data[0]);
 			LOG_D("data[1] = 0x%x\n\r", byte_data[1]);
@@ -253,7 +253,7 @@ void app_connected_process_usb_event(USB_EVENT event)
 
 static void transmit_ready(void)
 {
-	BYTE buffer[3];
+	u8 buffer[3];
 
 	buffer[0] = 0;
 	buffer[1] = 1;
@@ -269,7 +269,7 @@ static void transmit_app_type_info(void)
 	buffer[0] = 2;
 	buffer[1] = BUN_ANDROID_APP_TYPE_RESP;
 //	buffer[2] = NODE_CONFIG_APP;
-	android_transmit((BYTE *) buffer, 3);
+	android_transmit((u8 *) buffer, 3);
 }
 #endif
 
@@ -277,7 +277,7 @@ static void transmit_app_type_info(void)
 result_t transmit_hardware_info(void)
 {
 	char buffer[160];
-	BYTE index = 0;
+	u8 index = 0;
 	UINT16 length;
 	result_t rc;
 
@@ -323,7 +323,7 @@ result_t transmit_hardware_info(void)
 	LOG_D("Tx boot info length %d\n\r", index);
 	buffer[0] = index;
 
-	android_transmit((BYTE *) buffer, index);
+	android_transmit((u8 *) buffer, index);
 	return(SUCCESS);
 }
 #endif
@@ -333,7 +333,7 @@ result_t transmit_bootcode_info(void)
 {
 	//    char string[50];
 	char buffer[152];
-	BYTE index = 0;
+	u8 index = 0;
 	UINT16 length;
 	result_t rc;
 
@@ -372,7 +372,7 @@ result_t transmit_bootcode_info(void)
 	LOG_D("Tx boot info length %d\n\r", index);
 	buffer[0] = index;
 
-	android_transmit((BYTE *) buffer, index);
+	android_transmit((u8 *) buffer, index);
 	return(SUCCESS);
 }
 #endif
@@ -422,7 +422,7 @@ result_t transmit_firmware_info(void)
 	LOG_D("Tx Firmware info length %d\n\r", index);
 	buffer[0] = index;
 
-	android_transmit((BYTE *) buffer, index);
+	android_transmit((u8 *) buffer, index);
 	return(SUCCESS);
 }
 #endif

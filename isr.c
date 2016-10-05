@@ -310,7 +310,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC2Interrupt(void)
     else
         LOG_E("Unexpected Interrupt on _OC2Interrupt\n\r");
 }
-
+#if 0
 void __attribute__((__interrupt__, __no_auto_psv__)) _T2Interrupt(void)
 {
     void (*isr)(void) = (void (*)(void))T2_INTERRUPT;
@@ -319,7 +319,8 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T2Interrupt(void)
     else
         LOG_E("Unexpected Interrupt on _T2Interrupt\n\r");
 }
-
+#endif
+#if 0
 void __attribute__((__interrupt__, __no_auto_psv__)) _T3Interrupt(void)
 {
     void (*isr)(void) = (void (*)(void))T3_INTERRUPT;
@@ -328,7 +329,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T3Interrupt(void)
     else
         LOG_E("Unexpected Interrupt on _T3Interrupt\n\r");
 }
-
+#endif
 void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1ErrInterrupt(void)
 {
     void (*isr)(void) = (void (*)(void))SPI1_ERR_INTERRUPT;
@@ -346,7 +347,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _SPI1Interrupt(void)
     else
         LOG_E("Unexpected Interrupt on _SPI1Interrupt\n\r");
 }
-
+#if 0
 void __attribute__((__interrupt__, __no_auto_psv__)) _U1RXInterrupt(void)
 {
     void (*isr)(void) = (void (*)(void))U1RX_INTERRUPT;
@@ -355,7 +356,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _U1RXInterrupt(void)
     else
         LOG_E("Unexpected Interrupt on _U1RXInterrupt\n\r");
 }
-
+#endif
 void __attribute__((__interrupt__, __no_auto_psv__)) _U1TXInterrupt(void)
 {
     void (*isr)(void) = (void (*)(void))U1TX_INTERRUPT;
@@ -490,7 +491,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _OC4Interrupt(void)
     else
         LOG_E("Unexpected Interrupt on _OC4Interrupt\n\r");
 }
-
+#if 0
 void __attribute__((__interrupt__, __no_auto_psv__)) _T4Interrupt(void)
 {
     void (*isr)(void) = (void (*)(void))T4_INTERRUPT;
@@ -499,7 +500,8 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T4Interrupt(void)
     else
         LOG_E("Unexpected Interrupt on _T4Interrupt\n\r");
 }
-
+#endif
+#if 0
 void __attribute__((__interrupt__, __no_auto_psv__)) _T5Interrupt(void)
 {
     void (*isr)(void) = (void (*)(void))T5_INTERRUPT;
@@ -508,7 +510,7 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T5Interrupt(void)
     else
         LOG_E("Unexpected Interrupt on _T5Interrupt\n\r");
 }
-
+#endif
 void __attribute__((__interrupt__, __no_auto_psv__)) _INT2Interrupt(void)
 {
     void (*isr)(void) = (void (*)(void))INT2_INTERRUPT;

@@ -121,9 +121,9 @@ int main(void)
 	char uri[50] = "";
 	ANDROID_ACCESSORY_INFORMATION android_device_info;
         can_baud_rate_t baud_rate;
-        BYTE magic_1;
-        BYTE magic_2;
-	UINT16 length;
+        u8 magic_1;
+        u8 magic_2;
+	u16 length;
 	u8  wdt_status;
 
 	serial_init();
@@ -263,7 +263,7 @@ int main(void)
 	asm ("CLRWDT");
 
 #ifdef CAN
-	eeprom_read(EEPROM_CAN_BAUD_RATE_ADDR, (BYTE *) & baud_rate);
+	eeprom_read(EEPROM_CAN_BAUD_RATE_ADDR, (u8 *) & baud_rate);
         if(baud_rate >= no_baud) {
 		baud_rate = baud_10K;
 		LOG_W("No CAN Baud Rate set so storing 10KBit/s\n\r");
@@ -330,7 +330,7 @@ u8 node_get_address(void)
 		do {
 			address = (u8) (rand() & 0x0ff);
 		} while (address == BROADCAST_NODE_ADDRESS);
-		
+
 		rc = eeprom_write(EEPROM_NODE_ADDRESS, address);
 		if (rc != SUCCESS) {
 			LOG_E("Failed to write from eeprom return code 0x%x\n\r", rc);
