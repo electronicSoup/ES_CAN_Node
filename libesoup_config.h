@@ -153,6 +153,7 @@
  *
  *******************************************************************************
  */
+#if 0
 /**
  * @brief EEPROM Watch Dog Reset info Address
  *
@@ -199,14 +200,17 @@
  * Value stored in EEPROM to indicate valid Application Installed.
  */
 #define APP_VALID_MAGIC_VALUE  0x55
+#endif
 
 /*
  *  EEPROM Address MAP
  */
-#define EEPROM_APP_VALID_MAGIC_ADDR_1  0x00
-#define EEPROM_APP_VALID_MAGIC_ADDR_2  0x01
-#define EEPROM_NODE_ADDRESS            0x02
-#define EEPROM_CAN_BAUD_RATE_ADDR      0x03
+#define EEPROM_NODE_STATUS_ADDR             0x00
+#define NODE_STATUS_APP_VALID              (1 << 0)
+
+#define EEPROM_NODE_ADDRESS                 0x01
+#define EEPROM_NODE_CAN_BAUD_RATE_ADDR      0x02
+#if 0
 #define EEPROM_IO_ADDRESS_ADDR         0x04
 #define EEPROM_NODE_DESCRIPTION_ADDR   0x05  // Array of 30 Bytes!
 #define EEPROM_NEXT_FREEEEEEEEEEE      0x23
@@ -244,5 +248,7 @@
 #define BUN_APPLICATION_INFO_RESP        (BUN_MSG_USER_OFFSET + 1)
 
 #define CAN_NODE_OS
+
+#endif  // 0
 
 #endif // _LIBESOUP_CONFIG_H
