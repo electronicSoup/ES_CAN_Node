@@ -1,0 +1,3 @@
+[submodule "libesoup"]
+	path = libesoup
+	url = git@github.com:electronicSoup/libesoup.git

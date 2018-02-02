@@ -22,7 +22,35 @@
 #ifndef _SYSTEM_H
 #define _SYSTEM_H
 
+/*
+ * The configuration of the Serial Port there are 3 pins, the Gnd pin is fixed
+ * so you define the configuration of the other two pins. Uncomment as required
+ */
+//#define SERIAL_PORT_GndTxRx
+#define SERIAL_PORT_GndRxTx
+
+#define SYSTEM_TICK_ms 5
+
+#if defined(__dsPIC33EP256MU806__)
+#include "es_lib/boards/cb-dsPIC33EP256MU806.h"
+#elif defined(__PIC24FJ256GB106__) || defined(__PIC24FJ64GB106__)
+#include "es_lib/boards/cb-PIC24FJ256GB106.h"
+#endif
+
 #include "es_lib/core.h"
+
+/**
+ * @brief The required Instruction clock frequency of the device. 
+ * 
+ * The actual Hardware clock frequency is defined by the MACRO CRYSTAL_FREQ in
+ * core.h. That constant is used in conjunction with this required CLOCK_FREQ 
+ * in the function clock_init() to set the desired frequency with the PLL.
+ *  
+ * The function clock_init() has to be called on entry to main() to 
+ * initialise the device to this clock frequency.
+ */
+#define CLOCK_FREQ 8000000     // 8MHz
+//#define CLOCK_FREQ 60000000    // 60MHz
 
 /*
  * The size of the Transmit buffer to be used on the USART Serial port.
@@ -33,13 +61,6 @@
  * Baud rate of the serial debug port
  */
 #define SERIAL_LOGGING_BAUD 19200
-
-/*
- * The configuration of the Serial Port there are 3 pins, the Gnd pin is fixed
- * so you define the configuration of the other two pins. Uncomment as required
- */
-//#define SERIAL_PORT_GndTxRx
-#define SERIAL_PORT_GndRxTx
 
 /*
  * Log level. these are defined in es_lib/core.h as they are included everywhere

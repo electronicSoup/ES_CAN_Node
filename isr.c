@@ -20,12 +20,16 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "system.h"
+#include "libesoup_config.h"
+
+#ifdef SYS_SERIAL_LOGGING
 #define DEBUG_FILE
-#include "es_lib/logger/serial_log.h"
+static const char *TAG = "ISR";
+#include "libesoup/logger/serial_log.h"
+#endif // SYS_SERIAL_LOGGING
+
 #include "os_api.h"
 
-#define TAG "ISR"
 
 #define APP_ISR_TABLE      0x1809E
 

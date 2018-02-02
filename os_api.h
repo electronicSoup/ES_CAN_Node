@@ -22,9 +22,9 @@
 #ifndef _OS_H
 #define _OS_H
 
-#include "es_lib/core.h"
+#include "libesoup_config.h"
 
-extern BOOL app_valid;
+extern boolean app_valid;
 
 extern void  os_init_data(void);
 extern void  os_remove_current_app(void);

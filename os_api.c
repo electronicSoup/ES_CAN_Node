@@ -19,19 +19,28 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "system.h"
-#include <stdio.h>
+#include "libesoup_config.h"
+
+#ifdef OS_API
+
+#ifdef SYS_SERIAL_LOGGING
+#define DEBUG_FILE
+static const char *TAG = "OS_API";
+#include "libesoup/logger/serial_log.h"
+#endif // SYS_SERIAL_LOGGING
+
+//#include <stdio.h>
+
+
 #include <string.h>
 
-#include "es_lib/timers/timers.h"
-#include "es_lib/utils/eeprom.h"
-#include "es_lib/can/es_can.h"
-#include "es_lib/can/dcncp/dcncp_can.h"
-#include "es_lib/logger/iso15765_log.h"
-#include "es_lib/utils/flash.h"
+#include "libesoup/timers/sw_timers.h"
+//#include "es_lib/utils/eeprom.h"
+//#include "es_lib/can/es_can.h"
+//#include "es_lib/can/dcncp/dcncp_can.h"
+//#include "es_lib/logger/iso15765_log.h"
+//#include "es_lib/utils/flash.h"
 
-#define DEBUG_FILE
-#include "es_lib/logger/serial_log.h"
 #include "os_api.h"
 
 static result_t os_clear_app_eeprom(void);
@@ -41,28 +50,28 @@ static void os_clear_all_iso15765_handlers(void);
 
 #define TAG "OS"
 
-BOOL app_valid;
+boolean app_valid;
 
 /*
  * Have to keep a track of timers being used by the applicaton
  * in order to cancel them if the APP is uninstalled.
  */
 typedef struct {
-	BOOL active;
+	boolean active;
 	expiry_function function;
 } os_timer_t;
 
-os_timer_t os_timers[NUMBER_OF_TIMERS];
+os_timer_t os_timers[SYS_NUMBER_OF_SW_TIMERS];
 
 /*
  * Have to keep a track of CAN Layer 2 handers being used by the applicaton
  * in order to remove them if the APP is uninstalled.
  */
 typedef struct {
-	u8 active;
+	uint8_t active;
 } os_can_l2_handler;
 
-#ifdef CAN
+#ifdef SYS_CAN
 os_can_l2_handler os_can_l2_handlers[CAN_L2_HANDLER_ARRAY_SIZE];
 #endif // CAN
 
@@ -71,19 +80,19 @@ os_can_l2_handler os_can_l2_handlers[CAN_L2_HANDLER_ARRAY_SIZE];
  * in order to remove them if the APP is uninstalled.
  */
 typedef struct {
-	u8 active;
+	uint8_t active;
 } os_iso15765_handler;
 
-#if defined(ISO15765)
+#if defined(SYS_CAN_ISO15765)
 os_iso15765_handler os_iso15765_handlers[ISO15765_REGISTER_ARRAY_SIZE];
-#endif // ISO15765
+#endif // SYS_CAN_ISO15765
 
 /*
  * Have to keep a track of ISO-11783 handers being used by the applicaton
  * in order to remove them if the APP is uninstalled.
  */
 typedef struct {
-	u8 active;
+	uint8_t active;
 } os_iso11783_handler;
 
 #if defined(ISO11783)
@@ -94,9 +103,9 @@ static void os_clear_all_iso11783_handlers();
 
 void os_init_data(void)
 {
-	u16 loop;
+	uint16_t loop;
 
-	for (loop = 0; loop < NUMBER_OF_TIMERS; loop++) {
+	for (loop = 0; loop < SYS_NUMBER_OF_SW_TIMERS; loop++) {
 		os_timers[loop].active = FALSE;
 	}
 
@@ -122,28 +131,32 @@ void os_remove_current_app(void)
 	os_clear_all_iso11783_handlers();
 }
 
-void exp_os_timer(timer_t timer_id, union sigval data)
+void exp_os_timer(timer_id timer, union sigval data)
 {
-	if (os_timers[timer_id].active) {
-		os_timers[timer_id].active = FALSE;
-		os_timers[timer_id].function(timer_id, data);
+	if (os_timers[timer].active) {
+		os_timers[timer].active = FALSE;
+		os_timers[timer].function(timer, data);
 	} else {
+#if (defined(SYS_SERIAL_LOGGING) && (SYS_LOG_LEVEL <= LOG_ERROR))
 		LOG_E("Inactive timer expired!\n\r");
+#endif
 	}
 }
 
 /*
 ** start_timer
  */
-result_t os_timer_start(u16 ticks,
+extern result_t sw_timer_start(timer_id *timer, struct timer_req *request);
+result_t os_timer_start(uint16_t ticks,
 	expiry_function function,
         union sigval data,
         es_timer *timer)
 {
 	result_t rc;
 
+#if (defined(SYS_SERIAL_LOGGING) && defined(DEBUG_FILE) && (SYS_LOG_LEVEL <= LOG_DEBUG))
 	LOG_D("os_timer_start()\n\r");
-
+#endif
 	rc = timer_start(ticks, exp_os_timer, data, timer);
 
 	if(rc == SUCCESS) {
@@ -547,3 +560,5 @@ result_t os_flash_strcpy(char *dst, __prog__ char *src, u16 *length)
 	LOG_D("os_flash_strcpy()\n\r");
 	return(flash_strcpy(dst, src, length));
 }
+
+#endif // OS_API
