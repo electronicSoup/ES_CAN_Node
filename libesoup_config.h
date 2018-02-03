@@ -134,6 +134,14 @@
 #define SYS_RAND
 
 /*
+ * CAN Bus switches
+ */
+#define SYS_CAN_BUS
+#define SYS_CAN_BUS_MCP2515
+#define SYS_CAN_FRAME_HANDLER_ARRAY_SIZE  10
+#define SYS_CAN_L2_HANDLER_ARRAY_SIZE      5
+#define SYS_CAN_RX_CIR_BUFFER_SIZE         5        
+/*
  * Include a board file
  */
 #if defined(__dsPIC33EP256MU806__)
@@ -153,55 +161,6 @@
  *
  *******************************************************************************
  */
-#if 0
-/**
- * @brief EEPROM Watch Dog Reset info Address
- *
- * The Bootloader's Watch Dog Reset Protocol Byte address is used for 
- * communication between the Bootloader and the installed Firmware. 
- *
- * The byte contains a bit field of data, indicating the Power Up status of the
- * device.
- *
- * Only two bits of the Byte are used.
- */
-#define EEPROM_WDR_PROTOCOL_ADDR           0x00
-
-/**
- * @brief The processor was reset by a Watch Dog Reset.
- *
- * This bit of the @see EEPROM_WDR_PROTOCOL_ADDR EEPROM Byte is set by the
- * bootloader if it detects that the processor has been reset by a Watch Dog
- * Reset. Normally the bootload will invalidate the installed firmware if a 
- * Watch Dog Reset is detected on power up.
- *
- * The invalidation of installed firmware can be countermanded if the 
- * @see WDR_DO_NOT_INVALIDATE_FIRMWARE bit of the @see EEPROM_WDR_PROTOCOL_ADDR
- * has been set by the installed firmware.
- */
-#define WDR_PROCESSOR_RESET_BY_WATCHDOG    0x01
-
-/**
- * @brief Force Bootloader NOT to invalidate firmware on Watch Dog Reset.
- *
- * This bit of the @see EEPROM_WDR_PROTOCOL_ADDR Byte can be set by the 
- * installed firware. Normally on power up if a Watch Dog Reset condition is 
- * detected the bootload will invalidate the installed firmware. If however this
- * bit has been set by the installed firmware then the bootload will only set 
- * the @see WDR_PROCESSOR_RESET_BY_WATCHDOG bit to indicate that the WDR has
- * occured, and will not invalidate firmware. The firmware should, when it
- * starts executing, check the @see WDR_PROCESSOR_RESET_BY_WATCHDOG bit to see
- * if a WDR has occured and proceed accordingly.
- *
- */
-#define WDR_DO_NOT_INVALIDATE_FIRMWARE     0x02
-
-/*
- * Value stored in EEPROM to indicate valid Application Installed.
- */
-#define APP_VALID_MAGIC_VALUE  0x55
-#endif
-
 /*
  *  EEPROM Address MAP
  */
@@ -210,6 +169,16 @@
 
 #define EEPROM_NODE_ADDRESS                 0x01
 #define EEPROM_NODE_CAN_BAUD_RATE_ADDR      0x02
+
+
+/*
+ * Macros for executing Application code.
+ */
+#define CALL_APP_INIT()      asm("call 0x18096")
+#define CALL_APP_MAIN()      asm("call 0x1809A")
+//#define CALL_APP_STATUS()    asm("call 0x1809E")
+#define APP_STATUS_ADDRESS  0x1809E
+
 #if 0
 #define EEPROM_IO_ADDRESS_ADDR         0x04
 #define EEPROM_NODE_DESCRIPTION_ADDR   0x05  // Array of 30 Bytes!
@@ -227,14 +196,6 @@
  */
 #define APP_HANDLE_FLASH_ADDRESS 0x400
 #define APP_START_FLASH_ADDRESS  0x18000
-
-/*
- * Macros for executing Application code.
- */
-#define CALL_APP_INIT()      asm("call 0x18096")
-#define CALL_APP_MAIN()      asm("call 0x1809A")
-//#define CALL_APP_STATUS()    asm("call 0x1809E")
-#define APP_STATUS_ADDRESS  0x1809E
 
 /*
  * APP Messages from the Connected Android Applicaiton
