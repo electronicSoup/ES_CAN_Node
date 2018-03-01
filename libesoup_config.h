@@ -1,29 +1,22 @@
 /**
  *
- * @file es_lib/example/system.h
+ * \file libesoup_config.h
  *
- * @author John Whitmore
+ * \brief libesoup configuration file for the CAN Node
  *
- * This file contains an example es_lib system.h configuration file. 
+ * Copyright 2018 electronicSoup
  *
- * The es_lib library of source code expects a system.h header file to exist
- * in your include path. The file contains the various switches and definitions
- * which configure the various features of the library.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the version 3 of the GNU General Public License
+ * as published by the Free Software Foundation
  *
- * Copyright 2017 electronicSoup Limited
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
- *   This program is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU Lesser General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Lesser General Public License for more details.
- *
- *   You should have received a copy of the GNU Lesser General Public License
- *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 #ifndef _LIBESOUP_CONFIG_H
@@ -41,14 +34,18 @@
  * The function clock_init() has to be called on entry to main() to 
  * initialise the device to this clock frequency.
  */
+#include "libesoup/core.h"
+
 #if defined(__PIC24FJ256GB106__) || defined(__PIC24FJ64GB106__)
 #define SYS_CLOCK_FREQ 4000000     // 4MHz
 #elif defined(__dsPIC33EP256MU806__)
-//#define SYS_CLOCK_FREQ 8000000     // 8MHz
-#define SYS_CLOCK_FREQ 60000000    // 60MHz
+#define SYS_CLOCK_FREQ 8000000     // 8MHz
+//#define SYS_CLOCK_FREQ 60000000    // 60MHz
 #elif defined(__18F4585)
 #define SYS_CLOCK_FREQ 16000000     // 8MHz
 #endif
+
+#define SYS_DEBUG_BUILD
 
 #define SYS_SERIAL_LOGGING
 
@@ -134,10 +131,15 @@
 #define SYS_RAND
 
 /*
+ * CAN Bus depends on System Status Code
+ */
+#define SYS_SYSTEM_STATUS
+
+/*
  * CAN Bus switches
  */
 #define SYS_CAN_BUS
-#define SYS_CAN_BUS_MCP2515
+#define SYS_CAN_LOOPBACK
 #define SYS_CAN_FRAME_HANDLER_ARRAY_SIZE  10
 #define SYS_CAN_L2_HANDLER_ARRAY_SIZE      5
 #define SYS_CAN_RX_CIR_BUFFER_SIZE         5        
@@ -169,15 +171,6 @@
 
 #define EEPROM_NODE_ADDRESS                 0x01
 #define EEPROM_NODE_CAN_BAUD_RATE_ADDR      0x02
-
-
-/*
- * Macros for executing Application code.
- */
-#define CALL_APP_INIT()      asm("call 0x18096")
-#define CALL_APP_MAIN()      asm("call 0x1809A")
-//#define CALL_APP_STATUS()    asm("call 0x1809E")
-#define APP_STATUS_ADDRESS  0x1809E
 
 #if 0
 #define EEPROM_IO_ADDRESS_ADDR         0x04

@@ -1,13 +1,13 @@
 /**
  *
- * \file os.h
+ * \file dummy_app.c
  *
- * Function declaration for OS.
+ * \brief Dummy implementations of Application entry points for the CAN Node
  *
- * Copyright 2014 John Whitmore <jwhitmore@electronicsoup.com>
+ * Copyright 2018 electronicSoup
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the version 2 of the GNU General Public License
+ * it under the terms of the version 3 of the GNU General Public License
  * as published by the Free Software Foundation
  *
  * This program is distributed in the hope that it will be useful,
@@ -19,14 +19,12 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef _OS_H
-#define _OS_H
+void app_init(void)
+{
+	
+}
 
-#include "libesoup_config.h"
-
-extern boolean app_valid;
-
-extern void  os_init_data(void);
-extern void  os_remove_current_app(void);
-
-#endif //_OS_H
+void app_main(void)
+{
+	
+}
