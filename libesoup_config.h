@@ -119,6 +119,8 @@
  * EEPROM Chip is connected via the SPI Interface so enable
  */
 #define SYS_SPI_BUS
+#define SYS_SPI_NUM_CHANNELS 1
+#define SYS_SPI_NUM_DEVICES 1
 
 /*
  * Include access to the EEPROM Chip in the project
@@ -139,15 +141,20 @@
  * CAN Bus switches
  */
 #define SYS_CAN_BUS
-#define SYS_CAN_LOOPBACK
+//#define SYS_CAN_LOOPBACK   // Only used in testing a single node
 #define SYS_CAN_FRAME_HANDLER_ARRAY_SIZE  10
 #define SYS_CAN_L2_HANDLER_ARRAY_SIZE      5
-#define SYS_CAN_RX_CIR_BUFFER_SIZE         5        
+#define SYS_CAN_RX_CIR_BUFFER_SIZE         5
+#define SYS_CAN_PING_PROTOCOL
+#define SYS_CAN_PING_FRAME_ID              0x555
+
+//#define SYS_CAN_DYNAMIC_BAUD_RATE
+
 /*
  * Include a board file
  */
 #if defined(__dsPIC33EP256MU806__)
-#include "libesoup/boards/cb-dsPIC33EP256MU806.h"
+#include "libesoup/boards/cinnamonBun/cb-dsPIC33EP256MU806.h"
 #elif defined (__PIC24FJ256GB106__)
 #include "libesoup/boards/cb-PIC24FJ256GB106/cb-PIC24FJ256GB106.h"
 #elif defined(__18F4585)

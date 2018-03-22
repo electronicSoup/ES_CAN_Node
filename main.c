@@ -4,7 +4,7 @@
  *
  * \brief main entry point for the CAN Node
  *
- * Copyright 2014 - 2018 electronicSoup
+ * Copyright 2014-2018 electronicSoup
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the version 3 of the GNU General Public License
@@ -29,11 +29,10 @@ static const char *TAG = "Main";
 #include "libesoup/logger/serial_log.h"
 #endif // SYS_SERIAL_LOGGING
 
+#include "libesoup/errno.h"
 #include "libesoup/timers/sw_timers.h"
 #include "libesoup/timers/delay.h"
 #include "libesoup/comms/can/can.h"
-//#include "es_lib/usb/android/android_comms.h"
-//#include "es_lib/usb/android/state_idle.h"
 
 #include "libesoup/hardware/eeprom.h"
 #include "libesoup/status/status.h"
@@ -59,8 +58,9 @@ int main(void)
 	can_baud_rate_t  baud_rate;
 	uint8_t          node_status;
 	boolean          watchdog;
-	result_t         rc = SUCCESS;
+	result_t         rc = 0;
 	can_l2_target_t  target;
+	can_baud_rate_t  bit_rate;
 #ifdef SYS_SW_TIMERS
 	timer_id         timer;
 	struct timer_req request;
@@ -73,11 +73,7 @@ int main(void)
 	
 	libesoup_init();
 
-	/*
-	 * Allow the clock to settle
-	 */
 	delay(mSeconds, 500);
-	
 #if (defined(SYS_SERIAL_LOGGING) && defined(DEBUG_FILE) && (SYS_LOG_LEVEL <= LOG_DEBUG))
 	LOG_D("************************\n\r");
 	LOG_D("***   CAN Bus Node   ***\n\r");
@@ -92,11 +88,7 @@ int main(void)
 		app_valid = FALSE;
 
 		rc = eeprom_write(EEPROM_NODE_STATUS_ADDR, node_status & ~(NODE_STATUS_APP_VALID));
-		if(rc != SUCCESS) {
-#if (defined(SYS_SERIAL_LOGGING) && (SYS_LOG_LEVEL <= LOG_ERROR))
-			LOG_E("Failed to write to EEPROM\n\r");
-#endif
-		}
+		RC_CHECK_PRINT("Failed to write to EEPROM\n\r");
 	} else {
 #if (defined(SYS_SERIAL_LOGGING) && defined(DEBUG_FILE) && (SYS_LOG_LEVEL <= LOG_DEBUG))
 	LOG_D("Application assumed good!\n\r");
@@ -105,62 +97,51 @@ int main(void)
 	
 	asm ("CLRWDT");
 
-	eeprom_read(EEPROM_NODE_CAN_BAUD_RATE_ADDR, (uint8_t *) & baud_rate);
-        if(baud_rate >= no_baud) {
-		baud_rate = baud_10K;
-		LOG_W("No CAN Baud Rate set so storing 10KBit/s\n\r");
-		eeprom_write(EEPROM_NODE_CAN_BAUD_RATE_ADDR, baud_rate);
-        }
-	delay(mSeconds, 500);
- 	rc = can_init(baud_rate, system_status_handler);
-	if(rc != SUCCESS) {
-#if (defined(SYS_SERIAL_LOGGING) && (SYS_LOG_LEVEL <= LOG_ERROR))
-		LOG_E("Failed to initialise CAN Bus\n\r");
-#endif
+	rc = delay(mSeconds, 500);
+	RC_CHECK_PRINT("Failed to delay\n\r");
+#if 0
+	/*
+	 * Quick test of CAN Bus bit rates
+	 */
+	for(bit_rate = baud_10K; bit_rate < no_baud; bit_rate++) {
+		rc = can_l2_bitrate(bit_rate, FALSE);
+
+		if(rc >= 0) {
+			LOG_D("%s GOOD!\n\r", can_baud_rate_strings[bit_rate]);
+		} else if (rc == -ERR_CAN_BITRATE_HIGH) {
+			LOG_D("%s Too High!\n\r", can_baud_rate_strings[bit_rate]);
+		} else if (rc == -ERR_CAN_BITRATE_LOW) {
+			LOG_D("%s Too Low!\n\r", can_baud_rate_strings[bit_rate]);
+		}
 	}
+#endif
+	baud_rate = eeprom_read(EEPROM_NODE_CAN_BAUD_RATE_ADDR);
+        if( (baud_rate >= no_baud) || (baud_rate < 0) ) {
+		baud_rate = baud_250K;
+		LOG_W("No CAN Baud Rate set so storing 10KBit/s\n\r");
+		rc = eeprom_write(EEPROM_NODE_CAN_BAUD_RATE_ADDR, baud_rate);
+		RC_CHECK_PRINT("Failed to write to EEPROM\n\r");
+        }
+	rc = delay(mSeconds, 500);
+	RC_CHECK_PRINT("Failed to delay()\n\r");
+ 	rc = can_init(baud_rate, system_status_handler);
+	RC_CHECK_PRINT("Failed to initialise CAN Bus\n\r");
 
 	asm ("CLRWDT");
 	
-//        if(app_valid) {
-//		LOG_D("Call App Init as Application is valid\n\r");
-//		app_init();
-//        }
+        if(app_valid) {
+		LOG_D("Call App Init as Application is valid\n\r");
+		app_init();
+        }
 
-	/*
-	 * If the build includes SW Timers start a ping pong timer one
-	 * can load the serial logging buffer and the other can check
-	 * that it's emptied
-	 */
-#ifdef SYS_SW_TIMERS
-	TIMER_INIT(timer);
-	request.units = Seconds;
-	request.duration = 30;
-	request.type = repeat;
-	request.exp_fn = expiry;
-	request.data.sival_int = 0x00;
-	
-	rc = sw_timer_start(&timer, &request);
-	if(rc != SUCCESS) {
-#if (defined(SYS_SERIAL_LOGGING) && (SYS_LOG_LEVEL <= LOG_ERROR))
-		LOG_E("Failed to start SW Timer\n\r");
-#endif		
-	}
-#endif	// SYS_SW_TIMERS
-	
 	/*
 	 * Register a frame handler
 	 */
 	target.filter = 0x555;
 	target.mask   = CAN_SFF_MASK;
 	target.handler = frame_handler;
-
-	delay(mSeconds, 500);
 	rc = frame_dispatch_reg_handler(&target);
-	if(rc != SUCCESS) {
-#if (defined(SYS_SERIAL_LOGGING) && (SYS_LOG_LEVEL <= LOG_ERROR))
-		LOG_E("Failed to register frame handler\n\r");
-#endif		
-	}
+	RC_CHECK_PRINT("Failed to register frame handler\n\r");
 
 	/*
 	 * Enter the main loop
@@ -177,9 +158,9 @@ int main(void)
 
                 asm ("CLRWDT");
 
-//		if (app_valid) {
-//			app_main();
-//		}
+		if (app_valid) {
+			app_main();
+		}
 	}
 }
 
@@ -203,11 +184,7 @@ static void expiry(timer_id timer, union sigval data)
 	frame.can_dlc = 0x00;
 
 	rc = can_l2_tx_frame(&frame);
-	if(rc != SUCCESS) {
-#if (defined(SYS_SERIAL_LOGGING) && (SYS_LOG_LEVEL <= LOG_ERROR))
-		LOG_E("Failed to send CAN Frame\n\r");
-#endif		
-	}
+	RC_CHECK_PRINT("Failed to send CAN Frame\n\r");
 }
 #endif // SYS_SW_TIMERS
 
