@@ -129,11 +129,6 @@ int main(void)
 
 	asm ("CLRWDT");
 	
-        if(app_valid) {
-		LOG_D("Call App Init as Application is valid\n\r");
-		app_init();
-        }
-
 	/*
 	 * Register a frame handler
 	 */
@@ -142,6 +137,12 @@ int main(void)
 	target.handler = frame_handler;
 	rc = frame_dispatch_reg_handler(&target);
 	RC_CHECK_PRINT("Failed to register frame handler\n\r");
+
+        if(app_valid) {
+		LOG_D("Call App Init as Application is valid\n\r");
+		rc = app_init();
+		if(rc < 0) app_valid = FALSE;
+        }
 
 	/*
 	 * Enter the main loop
@@ -159,7 +160,8 @@ int main(void)
                 asm ("CLRWDT");
 
 		if (app_valid) {
-			app_main();
+			rc = app_main();
+			if(rc < 0) app_valid = FALSE;
 		}
 	}
 }

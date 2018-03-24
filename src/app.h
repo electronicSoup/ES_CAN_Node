@@ -19,5 +19,5 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
-extern void app_init(void);
-extern void app_main(void);
+extern result_t app_init(void);
+extern result_t app_main(void);
