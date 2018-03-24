@@ -179,6 +179,16 @@
 #define EEPROM_NODE_ADDRESS                 0x01
 #define EEPROM_NODE_CAN_BAUD_RATE_ADDR      0x02
 
+/*
+ * CAN Frame IDs
+ */
+#define SWITCH_INPUT_STATUS                0x140
+#define SWITCH_INPUT_STATUS_REQ            0x141
+#define SWITCH_OUTPUT_STATUS               0x146
+#define SWITCH_OUTPUT_STATUS_REQ           0x147
+
+
+
 #if 0
 #define EEPROM_IO_ADDRESS_ADDR         0x04
 #define EEPROM_NODE_DESCRIPTION_ADDR   0x05  // Array of 30 Bytes!
