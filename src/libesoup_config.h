@@ -184,8 +184,31 @@
  */
 #define SWITCH_INPUT_STATUS                0x140
 #define SWITCH_INPUT_STATUS_REQ            0x141
+
+union switch_input {
+	struct {
+		uint8_t   status:1;
+		uint8_t   input:3;
+		uint8_t   node:4;
+	} bitfield;
+	uint8_t byte;
+};
+
+
 #define SWITCH_OUTPUT_STATUS               0x146
 #define SWITCH_OUTPUT_STATUS_REQ           0x147
+#define SWITCH_OUTPUT_STATUS_RESP          0x148
+#define SWITCH_OUTPUT_ERROR                0x149
+
+union switch_output {
+	struct {
+		uint8_t   status:1;
+		uint8_t   output:3;
+		uint8_t   node:4;
+	} bitfield;
+	uint8_t byte;
+};
+
 
 
 
