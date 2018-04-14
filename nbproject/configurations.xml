@@ -615,6 +615,8 @@
         <property key="programoptions.uselvpprogramming" value="false"/>
         <property key="voltagevalue" value="3.25"/>
       </PICkit3PlatformTool>
+      <item path="src/application/Master/master.c" ex="true" overriding="false">
+      </item>
       <item path="src/application/SW_Input/sw_input.c" ex="true" overriding="false">
         <C30>
         </C30>

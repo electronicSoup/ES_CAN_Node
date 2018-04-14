@@ -28,7 +28,8 @@ static const char *TAG = "SWI";
 #include "libesoup/errno.h"
 #include "libesoup/gpio/gpio.h"
 #include "libesoup/comms/can/can.h"
-#include "libesoup/hardware/eeprom.h"
+//#include "libesoup/hardware/eeprom.h"
+#include "libesoup/status/status.h"
 
 #include "es_tpp.h"
 
@@ -71,7 +72,8 @@ void switch_input_status_req(can_frame *rx_frame)
 	}
 }
 
-result_t app_init(uint8_t address)
+
+result_t app_init(uint8_t address, status_handler_t handler)
 {
 	result_t                  rc;
 	uint8_t                   loop;

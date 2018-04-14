@@ -1,8 +1,10 @@
 /**
  *
- * \file dummy_app.c
+ * @file dummy_app.c
  *
- * \brief Dummy implementations of Application entry points for the CAN Node
+ * @author John Whitmore
+ * 
+ * @brief Dummy implementations of Application entry points for the CAN Node
  *
  * Copyright 2018 electronicSoup
  *
@@ -19,12 +21,15 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
-void app_init(void)
+#include "libesoup_config.h"
+#include "libesoup/status/status.h"
+
+result_t app_init(uint8_t node_address, status_handler_t handler)
 {
 	
 }
 
-void app_main(void)
+result_t app_main(void)
 {
 	
 }

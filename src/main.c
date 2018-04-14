@@ -173,7 +173,7 @@ void system_status_handler(status_source_t source, int16_t status, int16_t data)
 			can_connected = TRUE;
 			if(app_valid) {
 				LOG_D("Call App Init as Application is valid\n\r");
-				rc = app_init(node_address);
+				rc = app_init(node_address, system_status_handler);
 				if(rc < 0) app_valid = FALSE;
 			}
 

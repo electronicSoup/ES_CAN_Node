@@ -19,5 +19,5 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
-extern result_t app_init(uint8_t node_address);
+extern result_t app_init(uint8_t node_address, status_handler_t handler);
 extern result_t app_main(void);

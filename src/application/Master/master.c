@@ -28,6 +28,7 @@ static const char *TAG = "Master";
 #include "libesoup/errno.h"
 #include "libesoup/gpio/gpio.h"
 #include "libesoup/comms/can/can.h"
+#include "libesoup/status/status.h"
 
 #include "es_tpp.h"
 
@@ -58,7 +59,8 @@ void switch_input_status(can_frame *rx_frame)
 	}
 }
 
-result_t app_init(uint8_t address)
+
+result_t app_init(uint8_t address, status_handler_t handler)
 {
 	can_l2_target_t        target;
 
