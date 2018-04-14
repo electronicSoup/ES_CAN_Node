@@ -46,20 +46,20 @@ static struct sw_input input_switch[NUM_INPUTS];
 
 void switch_input_status_req(can_frame *rx_frame)
 {
-	result_t               rc;
-	uint8_t                loop;
-	can_frame              tx_frame;
-	union switch_status    switch_data;
+	result_t                  rc;
+	uint8_t                   loop;
+	can_frame                 tx_frame;
+	union switch_43_status    switch_data;
 
 	/*
 	 * Create a frame with the current status of the inputs
 	 */
-	tx_frame.can_id  = SWITCH_INPUT_STATUS;
+	tx_frame.can_id  = SWITCH_43_INPUT_STATUS;
 	tx_frame.can_dlc = 0;
 	
 	for(loop = 0; loop < rx_frame->can_dlc; loop++) {
 		switch_data.byte = rx_frame->data[loop];
-		if(switch_data.bitfield.node == node_address) {
+		if(switch_data.bitfield.io_node == node_address) {
 			switch_data.bitfield.status    = input_switch[switch_data.bitfield.channel].reported_state;
 			tx_frame.data[tx_frame.can_dlc++] = switch_data.byte;
 		}
@@ -73,11 +73,11 @@ void switch_input_status_req(can_frame *rx_frame)
 
 result_t app_init(uint8_t address)
 {
-	result_t               rc;
-	uint8_t                loop;
-	can_l2_target_t        target;
-	can_frame              frame;
-	union switch_status    switch_data;
+	result_t                  rc;
+	uint8_t                   loop;
+	can_l2_target_t           target;
+	can_frame                 frame;
+	union switch_43_status    switch_data;
 	
 	LOG_D("app_init(0x%x)\n\r", address);
 
@@ -86,7 +86,7 @@ result_t app_init(uint8_t address)
 	/*
 	 * Register a CAN Frame handler for the status_request frame
 	 */
-	target.filter  = SWITCH_INPUT_STATUS_REQ;
+	target.filter  = SWITCH_43_INPUT_STATUS_REQ;
 	target.mask    = CAN_SFF_MASK;
 	target.handler = switch_input_status_req;
 	rc = frame_dispatch_reg_handler(&target);
@@ -95,9 +95,9 @@ result_t app_init(uint8_t address)
 	/*
 	 * Create a frame with the current status of the inputs
 	 */
-	frame.can_id                = SWITCH_INPUT_STATUS;
-	frame.can_dlc               = NUM_INPUTS;
-	switch_data.bitfield.node   = node_address;
+	frame.can_id                   = SWITCH_43_INPUT_STATUS;
+	frame.can_dlc                  = NUM_INPUTS;
+	switch_data.bitfield.io_node   = node_address;
 	
 	/*
 	 * Set the GPIO of the input pins
@@ -122,18 +122,18 @@ result_t app_init(uint8_t address)
 
 result_t app_main(void)
 {
-	result_t               rc;
-	uint8_t                loop;
-	can_frame              frame;
-	boolean                current_state;
-	union switch_status    switch_data;
+	result_t                  rc;
+	uint8_t                   loop;
+	can_frame                 frame;
+	boolean                   current_state;
+	union switch_43_status    switch_data;
 
 	/*
 	 * Create a frame with the current status of the inputs
 	 */
-	frame.can_id  = SWITCH_INPUT_STATUS;
-	frame.can_dlc = 0;
-	switch_data.bitfield.node   = node_address;
+	frame.can_id                  = SWITCH_43_INPUT_STATUS;
+	frame.can_dlc                 = 0;
+	switch_data.bitfield.io_node  = node_address;
 
 	for(loop = 0; loop < NUM_INPUTS; loop++) {
 		rc = gpio_get(RD0 + loop);
@@ -150,7 +150,7 @@ result_t app_main(void)
 				switch_data.bitfield.channel      = loop;
 				switch_data.bitfield.status       = current_state;
 				frame.data[frame.can_dlc++]       = switch_data.byte;
-				LOG_D("Status 0x%x:0x%x:0x%x\n\r", switch_data.bitfield.node, switch_data.bitfield.channel, switch_data.bitfield.status);
+				LOG_D("Status 0x%x:0x%x:0x%x\n\r", switch_data.bitfield.io_node, switch_data.bitfield.channel, switch_data.bitfield.status);
 			}
 		} else {
 			input_switch[loop].debounce_count = 0;

@@ -35,14 +35,14 @@ static uint8_t   node_address;
 
 void switch_output_status(can_frame *frame)
 {
-	result_t               rc;
-	uint8_t                loop;
-	union switch_status    switch_data;
+	result_t                  rc;
+	uint8_t                   loop;
+	union switch_43_status    switch_data;
 	
 	for(loop = 0; loop < frame->can_dlc; loop++) {
 		switch_data.byte = frame->data[loop];
 		
-		if(switch_data.bitfield.node == node_address) {
+		if(switch_data.bitfield.io_node == node_address) {
 			rc = gpio_set(RD0 + switch_data.bitfield.channel, GPIO_MODE_DIGITAL_OUTPUT, switch_data.bitfield.status);
 			RC_CHECK_PRINT_VOID("gpio_set")
 		}
@@ -51,20 +51,20 @@ void switch_output_status(can_frame *frame)
 
 void switch_output_status_req(can_frame *rx_frame)
 {
-	result_t               rc;
-	uint8_t                loop;
-	union switch_status    rx_switch_data;
-	union switch_status    tx_switch_data;
-	can_frame              tx_frame;
+	result_t                  rc;
+	uint8_t                   loop;
+	union switch_43_status    rx_switch_data;
+	union switch_43_status    tx_switch_data;
+	can_frame                 tx_frame;
 	
-	tx_frame.can_id  = SWITCH_OUTPUT_STATUS_RESP;
+	tx_frame.can_id  = SWITCH_43_OUTPUT_STATUS_RESP;
 	tx_frame.can_dlc = 0;
-	tx_switch_data.bitfield.node = node_address;
+	tx_switch_data.bitfield.io_node = node_address;
 	
 	for(loop = 0; loop < rx_frame->can_dlc; loop++) {
 		rx_switch_data.byte = rx_frame->data[loop];
 		
-		if(rx_switch_data.bitfield.node == node_address) {
+		if(rx_switch_data.bitfield.io_node == node_address) {
 			rc = gpio_get(RD0 + rx_switch_data.bitfield.channel);
 			RC_CHECK_PRINT_VOID("gpio_get")
 			tx_switch_data.bitfield.channel = rx_switch_data.bitfield.channel;
@@ -97,7 +97,7 @@ result_t app_init(uint8_t address)
 	/*
 	 * Register a CAN Frame handler for the status_request frame
 	 */
-	target.filter  = SWITCH_OUTPUT_STATUS_REQ;
+	target.filter  = SWITCH_43_OUTPUT_STATUS_REQ;
 	target.mask    = CAN_SFF_MASK;
 	target.handler = switch_output_status_req;
 	rc = frame_dispatch_reg_handler(&target);
@@ -106,7 +106,7 @@ result_t app_init(uint8_t address)
 	/*
 	 * Register a CAN Frame handler for the status update frame
 	 */
-	target.filter  = SWITCH_OUTPUT_STATUS;
+	target.filter  = SWITCH_43_OUTPUT_STATUS;
 	target.mask    = CAN_SFF_MASK;
 	target.handler = switch_output_status;
 	return(frame_dispatch_reg_handler(&target));

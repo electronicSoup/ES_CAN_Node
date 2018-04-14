@@ -35,20 +35,20 @@ static uint8_t   node_address;
 
 void switch_input_status(can_frame *rx_frame)
 {
-	result_t               rc;
-	uint8_t                loop;
-	union switch_status    switch_data;
-	can_frame              tx_frame;
+	result_t                  rc;
+	uint8_t                   loop;
+	union switch_43_status    switch_data;
+	can_frame                 tx_frame;
 
 	/*
 	 * Create a frame with the current status of the inputs
 	 */
-	tx_frame.can_id  = SWITCH_OUTPUT_STATUS;
+	tx_frame.can_id  = SWITCH_43_OUTPUT_STATUS;
 	tx_frame.can_dlc = 0;
 	
 	for(loop = 0; loop < rx_frame->can_dlc; loop++) {
 		switch_data.byte = rx_frame->data[loop];
-		LOG_D("Input 0x%x:0x%x:0x%x\n\r", switch_data.bitfield.node, switch_data.bitfield.channel, switch_data.bitfield.status);
+		LOG_D("Input 0x%x:0x%x:0x%x\n\r", switch_data.bitfield.io_node, switch_data.bitfield.channel, switch_data.bitfield.status);
 		tx_frame.data[tx_frame.can_dlc++] = switch_data.byte;
 	}
 
@@ -68,7 +68,7 @@ result_t app_init(uint8_t address)
 	/*
 	 * Register a CAN Frame handler for the Switch Input frames
 	 */
-	target.filter  = SWITCH_INPUT_STATUS;
+	target.filter  = SWITCH_43_INPUT_STATUS;
 	target.mask    = CAN_SFF_MASK;
 	target.handler = switch_input_status;
 	return(frame_dispatch_reg_handler(&target));
