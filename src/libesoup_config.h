@@ -86,7 +86,7 @@
 /*
  * CAN Bus switches
  */
-//#define SYS_CAN_BUS
+#define SYS_CAN_BUS
 #ifdef SYS_CAN_BUS
 #define SYS_CAN_FRAME_HANDLER_ARRAY_SIZE     10
 #define SYS_CAN_L2_HANDLER_ARRAY_SIZE         5

@@ -102,20 +102,19 @@ union switch_52_status {
 
 
 
-#define PERCENTAGE_INPUT_STATUS            0x150
-#define PERCENTAGE_INPUT_STATUS_REQ        0x151
-#define PERCENTAGE_INPUT_STATUS_RESP       0x152
+#define ANALOG_42_INPUT_STATUS            0x150
+#define ANALOG_42_INPUT_STATUS_REQ        0x151
 
-#define PERCENTAGE_OUTPUT_STATUS           0x156
-#define PERCENTAGE_OUTPUT_STATUS_REQ       0x157
-#define PERCENTAGE_OUTPUT_STATUS_RESP      0x158
-#define PERCENTAGE_OUTPUT_ERROR            0x159
+#define ANALOG_42_OUTPUT_STATUS           0x156
+#define ANALOG_42_OUTPUT_STATUS_REQ       0x157
+#define ANALOG_42_OUTPUT_STATUS_RESP      0x158
+#define ANALOG_42_OUTPUT_ERROR            0x159
 
-union percentage_status {
+union analog_42_status {
 	struct {
-		uint16_t   precentage:10;
+		uint16_t   value:10;
 		uint16_t   channel:2;
-		uint16_t   node:4;
+		uint16_t   io_node:4;
 	} bitfield;
 	uint16_t bytes[2];
 };
