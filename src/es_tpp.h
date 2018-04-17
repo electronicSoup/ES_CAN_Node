@@ -113,10 +113,10 @@ union switch_52_status {
 
 union percentage_status {
 	struct {
-		uint8_t   precentage;
-		uint8_t   channel:3;
-		uint8_t   node:4;
+		uint16_t   precentage:10;
+		uint16_t   channel:2;
+		uint16_t   node:4;
 	} bitfield;
-	uint16_t byte;
+	uint16_t bytes[2];
 };
 

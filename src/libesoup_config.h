@@ -86,7 +86,8 @@
 /*
  * CAN Bus switches
  */
-#define SYS_CAN_BUS
+//#define SYS_CAN_BUS
+#ifdef SYS_CAN_BUS
 #define SYS_CAN_FRAME_HANDLER_ARRAY_SIZE     10
 #define SYS_CAN_L2_HANDLER_ARRAY_SIZE         5
 #define SYS_CAN_RX_CIR_BUFFER_SIZE            5
@@ -94,9 +95,14 @@
 #define SYS_CAN_PING_FRAME_ID             0x3FF
 #define SYS_CAN_PING_IDLE_SPREAD         (1000)    // 1,000m Second Spread around
 #define SYS_CAN_PING_IDLE_INTERVAL       (5000)    // A 5,000 mSecond Idle time
-
 //#define SYS_CAN_DYNAMIC_BAUD_RATE
+#define SYS_CAN_DCNCP
 
+#define SYS_CAN_ISO15765
+#define SYS_CAN_ISO15765_REGISTER_ARRAY_SIZE     5
+#define SYS_CAN_ISO15765_MAX_MSG               256
+#define SYS_CAN_ISO15765_LOG
+#endif // SYS_CAN_BUS
 /*
  * Include a board file
  */
@@ -123,15 +129,16 @@
 #define EEPROM_NODE_STATUS_ADDR             0x00
 #define NODE_STATUS_APP_VALID              (1 << 0)
 
-#define EEPROM_NODE_ADDRESS                 0x01
+#define EEPROM_NODE_IO_ADDRESS              0x01
 #define EEPROM_NODE_CAN_BAUD_RATE_ADDR      0x02
+#define EEPROM_NODE_L3_ADDRESS              0x03
 
 
 
 #if 0
 #define EEPROM_IO_ADDRESS_ADDR         0x04
 #define EEPROM_NODE_DESCRIPTION_ADDR   0x05  // Array of 30 Bytes!
-#define EEPROM_NEXT_FREEEEEEEEEEE      0x23
+#define EEPROM_NEXT_FREE               0x23
 
 #define EEPROM_CAN_NODE_PAGE_SIZE      36
 
