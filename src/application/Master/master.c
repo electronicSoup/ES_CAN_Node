@@ -51,6 +51,8 @@ void switch_43_input_status(can_frame *rx_frame)
 		switch_data.byte = rx_frame->data[loop];
 		LOG_D("Input 0x%x:0x%x:0x%x\n\r", switch_data.bitfield.io_node, switch_data.bitfield.channel, switch_data.bitfield.status);
 		tx_frame.data[tx_frame.can_dlc++] = switch_data.byte;
+		switch_data.bitfield.io_node      = 2;
+		tx_frame.data[tx_frame.can_dlc++] = switch_data.byte;
 	}
 
 	if(tx_frame.can_dlc > 0) {

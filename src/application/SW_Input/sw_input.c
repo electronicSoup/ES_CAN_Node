@@ -28,7 +28,6 @@ static const char *TAG = "SWI";
 #include "libesoup/errno.h"
 #include "libesoup/gpio/gpio.h"
 #include "libesoup/comms/can/can.h"
-//#include "libesoup/hardware/eeprom.h"
 #include "libesoup/status/status.h"
 
 #include "es_tpp.h"
@@ -36,7 +35,7 @@ static const char *TAG = "SWI";
 #define BOUNCE_LIMIT 4
 #define NUM_INPUTS   4
 
-static uint8_t   node_address;
+static uint8_t   io_address;
 
 struct sw_input {
 	uint8_t   debounce_count:4;
@@ -60,7 +59,7 @@ void switch_input_status_req(can_frame *rx_frame)
 	
 	for(loop = 0; loop < rx_frame->can_dlc; loop++) {
 		switch_data.byte = rx_frame->data[loop];
-		if(switch_data.bitfield.io_node == node_address) {
+		if(switch_data.bitfield.io_node == io_address) {
 			switch_data.bitfield.status    = input_switch[switch_data.bitfield.channel].reported_state;
 			tx_frame.data[tx_frame.can_dlc++] = switch_data.byte;
 		}
@@ -83,7 +82,7 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	
 	LOG_D("app_init(0x%x)\n\r", address);
 
-	node_address = address;
+	io_address = address;
 	
 	/*
 	 * Register a CAN Frame handler for the status_request frame
@@ -99,7 +98,7 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	 */
 	frame.can_id                   = SWITCH_43_INPUT_STATUS;
 	frame.can_dlc                  = NUM_INPUTS;
-	switch_data.bitfield.io_node   = node_address;
+	switch_data.bitfield.io_node   = io_address;
 	
 	/*
 	 * Set the GPIO of the input pins
@@ -135,7 +134,7 @@ result_t app_main(void)
 	 */
 	frame.can_id                  = SWITCH_43_INPUT_STATUS;
 	frame.can_dlc                 = 0;
-	switch_data.bitfield.io_node  = node_address;
+	switch_data.bitfield.io_node  = io_address;
 
 	for(loop = 0; loop < NUM_INPUTS; loop++) {
 		rc = gpio_get(RD0 + loop);

@@ -32,7 +32,7 @@ static const char *TAG = "SWO";
 
 #include "es_tpp.h"
 
-static uint8_t   node_address;
+static uint8_t   io_address;
 
 void switch_output_status(can_frame *frame)
 {
@@ -43,7 +43,7 @@ void switch_output_status(can_frame *frame)
 	for(loop = 0; loop < frame->can_dlc; loop++) {
 		switch_data.byte = frame->data[loop];
 		
-		if(switch_data.bitfield.io_node == node_address) {
+		if(switch_data.bitfield.io_node == io_address) {
 			rc = gpio_set(RD0 + switch_data.bitfield.channel, GPIO_MODE_DIGITAL_OUTPUT, switch_data.bitfield.status);
 			RC_CHECK_PRINT_VOID("gpio_set")
 		}
@@ -60,12 +60,12 @@ void switch_output_status_req(can_frame *rx_frame)
 	
 	tx_frame.can_id  = SWITCH_43_OUTPUT_STATUS_RESP;
 	tx_frame.can_dlc = 0;
-	tx_switch_data.bitfield.io_node = node_address;
+	tx_switch_data.bitfield.io_node = io_address;
 	
 	for(loop = 0; loop < rx_frame->can_dlc; loop++) {
 		rx_switch_data.byte = rx_frame->data[loop];
 		
-		if(rx_switch_data.bitfield.io_node == node_address) {
+		if(rx_switch_data.bitfield.io_node == io_address) {
 			rc = gpio_get(RD0 + rx_switch_data.bitfield.channel);
 			RC_CHECK_PRINT_VOID("gpio_get")
 			tx_switch_data.bitfield.channel = rx_switch_data.bitfield.channel;
@@ -87,7 +87,7 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	can_l2_target_t        target;
 
 	LOG_D("app_init(0x%x)\n\r", address);	
-	node_address = address;
+	io_address = address;
 
 	/*
 	 * Set the GPIO of the output pins
