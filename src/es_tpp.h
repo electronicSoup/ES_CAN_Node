@@ -97,6 +97,48 @@ union switch_52_status {
 };
 
 
+/**
+ * @brief byte (53) inputs and outputs. All the stuff which an 8 bit Byte data type
+ * 
+ * The '53' refers to the breakdown of the transmitted byte status (Input/Output)
+ * information. This message identifier indicates that there are 2^5 addressable
+ * nodes (IO Node Address) each with potentially 2^3 Input or Output channels.
+ * 
+ * As in programming an 8 bit byte can encode a wide variety of information,
+ * an unsigned 8 bit number, a signed 8 bit number, a colour, an ascii character.
+ * The origin for its inclusion in the protocol is the windscreen wipers of the
+ * New Holland 8360. In a wiper control system the electronics are not as simple
+ * as simply on and off. The Input switch allows the user to select a number
+ * of speeds of operation. Similarly the actual Output Motor sets a speed as
+ * required. In the case of the NH8360 there are only 2 active settings, slow 
+ * and fast, and an off position. These will be encoded on the Input as positions
+ * 0,1 & 2 Similarly sending a Output of 2 to the wiper motor will set the fast
+ * speed of operation.
+ */
+#define BYTE_53U8_INPUT_STATUS                0x250
+#define BYTE_52U8_INPUT_STATUS_REQ            0x251
+#define BYTE_52U8_INPUT_STATUS_RESP           0x252
+
+#define BYTE_53U8_OUTPUT_STATUS               0x256
+#define BYTE_53U8_OUTPUT_STATUS_REQ           0x257
+#define BYTE_52U8_OUTPUT_STATUS_RESP          0x258
+
+/**
+ * @brief The structure for transmission of '53' Byte Information
+ * 
+ * This particular structure allows for up to 2^5 Nodes each with 2^3 Input or 
+ * Output Channels.
+ */
+union byte_53u8_status {
+	struct {
+		uint16_t   byte:8;
+		uint16_t   channel:3;
+		uint16_t   io_node:5;
+	} bitfield;
+	uint16_t bytes[2];
+};
+
+
 
 
 
