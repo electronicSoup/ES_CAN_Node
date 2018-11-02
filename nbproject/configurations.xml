@@ -930,6 +930,14 @@
         <C30Global>
         </C30Global>
       </item>
+      <item path="src/application/Byte_Input/byte_input.c"
+            ex="true"
+            overriding="false">
+      </item>
+      <item path="src/application/Byte_Output/byte_output.c"
+            ex="true"
+            overriding="false">
+      </item>
       <item path="src/application/Master/master.c" ex="true" overriding="false">
         <C30>
         </C30>
@@ -1221,6 +1229,14 @@
         </C30-LD>
         <C30Global>
         </C30Global>
+      </item>
+      <item path="src/application/Byte_Input/byte_input.c"
+            ex="true"
+            overriding="false">
+      </item>
+      <item path="src/application/Byte_Output/byte_output.c"
+            ex="true"
+            overriding="false">
       </item>
       <item path="src/application/Master/master.c" ex="true" overriding="false">
         <C30>
@@ -1694,6 +1710,14 @@
         <C30Global>
         </C30Global>
       </item>
+      <item path="src/application/Byte_Input/byte_input.c"
+            ex="true"
+            overriding="false">
+      </item>
+      <item path="src/application/Byte_Output/byte_output.c"
+            ex="true"
+            overriding="false">
+      </item>
       <item path="src/application/SW_Input/sw_input.c" ex="true" overriding="false">
         <C30>
         </C30>
@@ -2033,6 +2057,9 @@
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
+      <packs>
+        <pack name="dsPIC33E-GM-GP-MC-GU-MU_DFP" vendor="Microchip" version="0.1.17"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -2276,6 +2303,16 @@
       <item path="src/application/Byte_Output/byte_output.c"
             ex="true"
             overriding="false">
+        <C30>
+        </C30>
+        <C30-AR>
+        </C30-AR>
+        <C30-AS>
+        </C30-AS>
+        <C30-LD>
+        </C30-LD>
+        <C30Global>
+        </C30Global>
       </item>
       <item path="src/application/Master/master.c" ex="true" overriding="false">
         <C30>
@@ -2290,6 +2327,16 @@
         </C30Global>
       </item>
       <item path="src/application/SW_Input/sw_input.c" ex="true" overriding="false">
+        <C30>
+        </C30>
+        <C30-AR>
+        </C30-AR>
+        <C30-AS>
+        </C30-AS>
+        <C30-LD>
+        </C30-LD>
+        <C30Global>
+        </C30Global>
       </item>
       <item path="src/application/SW_Output/sw_output.c" ex="true" overriding="false">
         <C30>
@@ -2327,6 +2374,9 @@
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
+      <packs>
+        <pack name="dsPIC33E-GM-GP-MC-GU-MU_DFP" vendor="Microchip" version="0.1.17"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -2570,6 +2620,16 @@
       <item path="src/application/Byte_Input/byte_input.c"
             ex="true"
             overriding="false">
+        <C30>
+        </C30>
+        <C30-AR>
+        </C30-AR>
+        <C30-AS>
+        </C30-AS>
+        <C30-LD>
+        </C30-LD>
+        <C30Global>
+        </C30Global>
       </item>
       <item path="src/application/Master/master.c" ex="true" overriding="false">
         <C30>
@@ -2596,6 +2656,16 @@
         </C30Global>
       </item>
       <item path="src/application/SW_Output/sw_output.c" ex="true" overriding="false">
+        <C30>
+        </C30>
+        <C30-AR>
+        </C30-AR>
+        <C30-AS>
+        </C30-AS>
+        <C30-LD>
+        </C30-LD>
+        <C30Global>
+        </C30Global>
       </item>
       <item path="src/dummy_app.c" ex="true" overriding="false">
         <C30>

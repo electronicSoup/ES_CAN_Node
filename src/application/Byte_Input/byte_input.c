@@ -30,8 +30,6 @@ static const char *TAG = "BYTI";
 #include "libesoup/comms/can/can.h"
 #include "libesoup/status/status.h"
 
-#include "es_tpp.h"
-
 #define NUM_INPUTS   1
 
 static uint8_t   io_address;
