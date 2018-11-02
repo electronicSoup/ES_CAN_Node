@@ -28,49 +28,55 @@ static const char *TAG = "SWO";
 #include "libesoup/errno.h"
 #include "libesoup/gpio/gpio.h"
 #include "libesoup/comms/can/can.h"
+#include "libesoup/comms/can/es_control/es_control.h"
 #include "libesoup/status/status.h"
+#ifndef SYS_CAN_BUS
+#include "libesoup/timers/sw_timers.h"
+#endif
 
-#include "es_tpp.h"
+static uint8_t   io_address;
 
-static uint8_t   node_address;
-
+#ifdef SYS_CAN_BUS
 void switch_output_status(can_frame *frame)
 {
-	result_t                  rc;
-	uint8_t                   loop;
-	union switch_43_status    switch_data;
+	result_t          rc;
+	uint8_t           loop;
+	union bool_431    es_bool;
 	
 	for(loop = 0; loop < frame->can_dlc; loop++) {
-		switch_data.byte = frame->data[loop];
+		es_bool.byte = frame->data[loop];
 		
-		if(switch_data.bitfield.io_node == node_address) {
-			rc = gpio_set(RD0 + switch_data.bitfield.channel, GPIO_MODE_DIGITAL_OUTPUT, switch_data.bitfield.status);
+		if(es_bool.bitfield.node == io_address) {
+			rc = gpio_set(RD0 + es_bool.bitfield.chan, GPIO_MODE_DIGITAL_OUTPUT, es_bool.bitfield.status);
 			RC_CHECK_PRINT_VOID("gpio_set")
 		}
 	}
 }
+#endif
 
-void switch_output_status_req(can_frame *rx_frame)
+#ifdef SYS_CAN_BUS
+void switch_output_rtr(can_frame *rx_frame)
 {
 	result_t                  rc;
 	uint8_t                   loop;
-	union switch_43_status    rx_switch_data;
-	union switch_43_status    tx_switch_data;
+	union bool_431            es_bool;
+	union es_control_id       es_ctrl_id;
 	can_frame                 tx_frame;
-	
-	tx_frame.can_id  = SWITCH_43_OUTPUT_STATUS_RESP;
+
+	es_ctrl_id.word = 0x0000;
+	es_ctrl_id.fields.priority = priority_3;
+	es_ctrl_id.fields.es_type  = bool_431_output;
+	tx_frame.can_id  = es_ctrl_id.word;
 	tx_frame.can_dlc = 0;
-	tx_switch_data.bitfield.io_node = node_address;
 	
 	for(loop = 0; loop < rx_frame->can_dlc; loop++) {
-		rx_switch_data.byte = rx_frame->data[loop];
+		es_bool.byte = rx_frame->data[loop];
 		
-		if(rx_switch_data.bitfield.io_node == node_address) {
-			rc = gpio_get(RD0 + rx_switch_data.bitfield.channel);
+		if(es_bool.bitfield.node == io_address) {
+			rc = gpio_get(RD0 + es_bool.bitfield.chan);
 			RC_CHECK_PRINT_VOID("gpio_get")
-			tx_switch_data.bitfield.channel = rx_switch_data.bitfield.channel;
-			tx_switch_data.bitfield.status  = rc;
-			tx_frame.data[tx_frame.can_dlc++] = tx_switch_data.byte;
+			es_bool.bitfield.status  = rc;
+			tx_frame.data[tx_frame.can_dlc++] = es_bool.byte;
 		}
 	}
 	if(tx_frame.can_dlc > 0) {
@@ -78,40 +84,70 @@ void switch_output_status_req(can_frame *rx_frame)
 		RC_CHECK_PRINT_VOID("can_tx")
 	}
 }
+#endif
 
+#ifndef SYS_CAN_BUS
+void toggle(timer_id timer, union sigval data)
+{
+	result_t rc;
+	
+	LOG_D("toggle\n\r");
+	
+	LATDbits.LATD0 = ~PORTDbits.RD0;
+	
+}
+#endif
 
 result_t app_init(uint8_t address, status_handler_t handler)
 {
 	result_t               rc;
 	uint8_t                loop;
+#ifdef SYS_CAN_BUS
 	can_l2_target_t        target;
+#else
+	/*
+	 * If we're not running with the CAN Bus start a timer to test the
+	 * outputs on the board
+	 */
+	struct timer_req       request;
+#endif
 
 	LOG_D("app_init(0x%x)\n\r", address);	
-	node_address = address;
+	io_address = address;
 
 	/*
 	 * Set the GPIO of the output pins
 	 */
 	for(loop = RD0; loop < RD4; loop++) {
-		rc = gpio_set(loop, GPIO_MODE_DIGITAL_OUTPUT, 1);
+		rc = gpio_set(loop, GPIO_MODE_DIGITAL_OUTPUT, 0);
 	}
 
 	/*
 	 * Register a CAN Frame handler for the status_request frame
 	 */
-	target.filter  = SWITCH_43_OUTPUT_STATUS_REQ;
-	target.mask    = CAN_SFF_MASK;
-	target.handler = switch_output_status_req;
+#ifdef SYS_CAN_BUS
+	target.filter  = es_rtr_mask | bool_431_output;
+	target.mask    = es_rtr_mask | es_type_mask;
+	target.handler = switch_output_rtr;
 	rc = frame_dispatch_reg_handler(&target);
 	RC_CHECK
-
+#endif
 	/*
 	 * Register a CAN Frame handler for the status update frame
 	 */
-	target.filter  = SWITCH_43_OUTPUT_STATUS;
-	target.mask    = CAN_SFF_MASK;
+#ifdef SYS_CAN_BUS
+	target.filter  = bool_431_output;
+	target.mask    = es_rtr_mask | es_type_mask;
 	target.handler = switch_output_status;
 	return(frame_dispatch_reg_handler(&target));
+#else
+	request.units = Seconds;
+	request.duration = 10;
+	request.exp_fn = toggle;
+	request.type = repeat;
+	
+	return(sw_timer_start(&request));
+#endif
 }
 
 result_t app_main(void)
