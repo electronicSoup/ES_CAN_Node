@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="62">
+<configurationDescriptor version="65">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -57,17 +57,6 @@
               <itemPath>src/libesoup/comms/can/dynamic_baud_rate.c</itemPath>
               <itemPath>src/libesoup/comms/can/l3_iso15765-2.c</itemPath>
             </logicalFolder>
-            <logicalFolder name="modbus" displayName="modbus" projectFiles="true">
-              <logicalFolder name="modbus_states"
-                             displayName="modbus_states"
-                             projectFiles="true">
-                <itemPath>src/libesoup/comms/modbus/modbus_states/modbus_transmitting.c</itemPath>
-                <itemPath>src/libesoup/comms/modbus/modbus_states/modbus_starting.c</itemPath>
-                <itemPath>src/libesoup/comms/modbus/modbus_states/modbus_awaiting_response.c</itemPath>
-                <itemPath>src/libesoup/comms/modbus/modbus_states/modbus_idle.c</itemPath>
-              </logicalFolder>
-              <itemPath>src/libesoup/comms/modbus/modbus.c</itemPath>
-            </logicalFolder>
             <logicalFolder name="morse" displayName="morse" projectFiles="true">
               <itemPath>src/libesoup/comms/morse/morse.c</itemPath>
             </logicalFolder>
@@ -84,10 +73,15 @@
           <logicalFolder name="firmware" displayName="firmware" projectFiles="true">
           </logicalFolder>
           <logicalFolder name="gpio" displayName="gpio" projectFiles="true">
+            <logicalFolder name="adc" displayName="adc" projectFiles="true">
+              <logicalFolder name="Inputs" displayName="Inputs" projectFiles="true">
+                <itemPath>src/libesoup/gpio/adc/Inputs/BTS5045.c</itemPath>
+              </logicalFolder>
+              <itemPath>src/libesoup/gpio/adc/adc.c</itemPath>
+            </logicalFolder>
             <itemPath>src/libesoup/gpio/peripheral.c</itemPath>
             <itemPath>src/libesoup/gpio/gpio.c</itemPath>
             <itemPath>src/libesoup/gpio/change_notification.c</itemPath>
-            <itemPath>src/libesoup/gpio/adc.c</itemPath>
           </logicalFolder>
           <logicalFolder name="hardware" displayName="hardware" projectFiles="true">
             <itemPath>src/libesoup/hardware/eeprom.c</itemPath>
@@ -149,6 +143,9 @@
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
+      <packs>
+        <pack name="PIC24F-GA-GB_DFP" vendor="Microchip" version="0.1.24"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -392,6 +389,9 @@
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
+      <packs>
+        <pack name="dsPIC33E-GM-GP-MC-GU-MU_DFP" vendor="Microchip" version="0.1.17"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -680,6 +680,9 @@
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
+      <packs>
+        <pack name="dsPIC33E-GM-GP-MC-GU-MU_DFP" vendor="Microchip" version="0.1.17"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -874,6 +877,7 @@
         <property key="UART 3" value="true"/>
         <property key="UART 4" value="true"/>
         <property key="USB" value="true"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
@@ -909,6 +913,16 @@
         <property key="voltagevalue" value="3.25"/>
       </PICkit3PlatformTool>
       <item path="src/application/ADC/adc_app.c" ex="true" overriding="false">
+        <C30>
+        </C30>
+        <C30-AR>
+        </C30-AR>
+        <C30-AS>
+        </C30-AS>
+        <C30-LD>
+        </C30-LD>
+        <C30Global>
+        </C30Global>
       </item>
       <item path="src/application/Master/master.c" ex="true" overriding="false">
         <C30>
@@ -958,6 +972,9 @@
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
+      <packs>
+        <pack name="dsPIC33E-GM-GP-MC-GU-MU_DFP" vendor="Microchip" version="0.1.17"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -1152,6 +1169,7 @@
         <property key="UART 3" value="true"/>
         <property key="UART 4" value="true"/>
         <property key="USB" value="true"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
@@ -1187,6 +1205,16 @@
         <property key="voltagevalue" value="3.25"/>
       </PICkit3PlatformTool>
       <item path="src/application/ADC/adc_app.c" ex="true" overriding="false">
+        <C30>
+        </C30>
+        <C30-AR>
+        </C30-AR>
+        <C30-AS>
+        </C30-AS>
+        <C30-LD>
+        </C30-LD>
+        <C30Global>
+        </C30Global>
       </item>
       <item path="src/application/Master/master.c" ex="true" overriding="false">
         <C30>
@@ -1236,6 +1264,9 @@
         <languageToolchainVersion>1.45</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
+      <packs>
+        <pack name="PIC18Fxxxx_DFP" vendor="Microchip" version="0.1.3"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -1413,6 +1444,9 @@
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
+      <packs>
+        <pack name="dsPIC33E-GM-GP-MC-GU-MU_DFP" vendor="Microchip" version="0.1.17"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -1607,6 +1641,7 @@
         <property key="UART 3" value="true"/>
         <property key="UART 4" value="true"/>
         <property key="USB" value="true"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
@@ -1642,6 +1677,16 @@
         <property key="voltagevalue" value="3.25"/>
       </PICkit3PlatformTool>
       <item path="src/application/ADC/adc_app.c" ex="true" overriding="false">
+        <C30>
+        </C30>
+        <C30-AR>
+        </C30-AR>
+        <C30-AS>
+        </C30-AS>
+        <C30-LD>
+        </C30-LD>
+        <C30Global>
+        </C30Global>
       </item>
       <item path="src/application/SW_Input/sw_input.c" ex="true" overriding="false">
         <C30>
@@ -1691,6 +1736,9 @@
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
+      <packs>
+        <pack name="dsPIC33E-GM-GP-MC-GU-MU_DFP" vendor="Microchip" version="0.1.17"/>
+      </packs>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -1921,6 +1969,16 @@
         <property key="voltagevalue" value="3.25"/>
       </PICkit3PlatformTool>
       <item path="src/application/Master/master.c" ex="true" overriding="false">
+        <C30>
+        </C30>
+        <C30-AR>
+        </C30-AR>
+        <C30-AS>
+        </C30-AS>
+        <C30-LD>
+        </C30-LD>
+        <C30Global>
+        </C30Global>
       </item>
       <item path="src/application/SW_Input/sw_input.c" ex="true" overriding="false">
         <C30>

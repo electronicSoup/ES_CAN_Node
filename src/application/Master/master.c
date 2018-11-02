@@ -28,29 +28,33 @@ static const char *TAG = "Master";
 #include "libesoup/errno.h"
 #include "libesoup/gpio/gpio.h"
 #include "libesoup/comms/can/can.h"
+#include "libesoup/comms/can/es_control/es_control.h"
 #include "libesoup/status/status.h"
-
-#include "es_tpp.h"
 
 static uint8_t   node_address;
 
 void switch_input_status(can_frame *rx_frame)
 {
-	result_t                  rc;
-	uint8_t                   loop;
-	union switch_43_status    switch_data;
-	can_frame                 tx_frame;
+	result_t               rc;
+	uint8_t                loop;
+	union bool_431         es_bool;
+	union es_control_id    es_ctrl_id;
+	can_frame              tx_frame;
 
 	/*
 	 * Create a frame with the current status of the inputs
 	 */
-	tx_frame.can_id  = SWITCH_43_OUTPUT_STATUS;
+	es_ctrl_id.word = 0;
+	es_ctrl_id.fields.es_type = bool_431_output;
+	tx_frame.can_id  = es_ctrl_id.word;
 	tx_frame.can_dlc = 0;
 	
 	for(loop = 0; loop < rx_frame->can_dlc; loop++) {
-		switch_data.byte = rx_frame->data[loop];
-		LOG_D("Input 0x%x:0x%x:0x%x\n\r", switch_data.bitfield.io_node, switch_data.bitfield.channel, switch_data.bitfield.status);
-		tx_frame.data[tx_frame.can_dlc++] = switch_data.byte;
+		es_bool.byte = rx_frame->data[loop];
+		LOG_D("Input 0x%x:0x%x:0x%x\n\r", es_bool.bitfield.node, es_bool.bitfield.chan, es_bool.bitfield.status);
+		tx_frame.data[tx_frame.can_dlc++] = es_bool.byte;
+		es_bool.bitfield.node = 2;
+		tx_frame.data[tx_frame.can_dlc++] = es_bool.byte;
 	}
 
 	if(tx_frame.can_dlc > 0) {
@@ -63,6 +67,7 @@ void switch_input_status(can_frame *rx_frame)
 result_t app_init(uint8_t address, status_handler_t handler)
 {
 	can_l2_target_t        target;
+	union es_control_id    es_ctrl_id;
 
 	LOG_D("Master app_init(0x%x)\n\r", address);	
 	node_address = address;
@@ -70,8 +75,10 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	/*
 	 * Register a CAN Frame handler for the Switch Input frames
 	 */
-	target.filter  = SWITCH_43_INPUT_STATUS;
-	target.mask    = CAN_SFF_MASK;
+	es_ctrl_id.word = 0;
+	es_ctrl_id.fields.es_type = bool_431_input;
+	target.filter  = es_ctrl_id.word;
+	target.mask    = es_type_mask;
 	target.handler = switch_input_status;
 	return(frame_dispatch_reg_handler(&target));
 }
