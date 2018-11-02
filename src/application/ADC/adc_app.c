@@ -39,10 +39,28 @@ static uint16_t  last_sample = 0xffff;
 
 void adc_result(enum pin_t pin, uint16_t sample)
 {
+	result_t                  rc;
+	can_frame                 frame;
+	union analog_42_status    analog_data;
+
 	LOG_D("Result 0x%x\n\r", sample);
 	if(last_sample != sample) {
 		LOG_D("send frame\n\r");
 		last_sample = sample;
+		/*
+	         * Create a frame with the current status of the inputs
+	         */
+		frame.can_id                   = ANALOG_42_INPUT_STATUS;
+		frame.can_dlc                  = 2;
+		analog_data.bitfield.io_node   = io_address;
+		analog_data.bitfield.channel   = 0;
+		analog_data.bitfield.value     = sample >> 1;
+		
+		frame.data[0] = analog_data.bytes[0];
+		frame.data[1] = analog_data.bytes[1];
+	
+		rc = can_l2_tx_frame(&frame);
+		RC_CHECK_PRINT_VOID("Tx!\n\r");
 	}
 }
 
@@ -50,21 +68,19 @@ void sample(timer_id timer, union sigval data)
 {
 	result_t rc;
 	
-	LOG_D("sample\n\r");
-	
 	rc = adc_sample(RB0, adc_result);
 	RC_CHECK_PRINT_VOID("adc_sample\n\r");
 }
 
 result_t app_init(uint8_t address, status_handler_t handler)
 {
-	struct timer_req       request;
+	struct timer_req          request;
 
 	LOG_D("app_init(0x%x)\n\r", address);
 	io_address = address;
-
+		
 	request.units = Seconds;
-	request.duration = 10;
+	request.duration = 1;
 	request.exp_fn = sample;
 	request.type = repeat;
 	

@@ -1,5 +1,4 @@
 /**
- *
  * @file dummy_app.c
  *
  * @author John Whitmore
@@ -24,12 +23,12 @@
 #include "libesoup_config.h"
 #include "libesoup/status/status.h"
 
-result_t app_init(uint8_t node_address, status_handler_t handler)
+result_t app_init(uint8_t io_address, status_handler_t handler)
 {
-	
+	return(0);
 }
 
 result_t app_main(void)
 {
-	
+	return(0);
 }

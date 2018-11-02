@@ -34,7 +34,7 @@ static const char *TAG = "SWI";
 #define BOUNCE_LIMIT 4
 #define NUM_INPUTS   4
 
-static uint8_t   node_address;
+static uint8_t   io_address;
 
 struct sw_input {
 	uint8_t   debounce_count:4;
@@ -90,7 +90,7 @@ result_t app_init(uint8_t address, status_handler_t handler)
 
 	LOG_D("app_init(0x%x)\n\r", address);
 
-	node_address = address;
+	io_address = address;
 	
 	/*
 	 * Register a CAN Frame handler for the status_request frame

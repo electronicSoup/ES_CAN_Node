@@ -1,9 +1,9 @@
 /**
- * @file dummy_app.c
+ * @file master.c
  *
  * @author John Whitmore
  * 
- * @brief Application entry points for Switch Output board
+ * @brief Master Application entry points
  *
  * Copyright 2018 electronicSoup
  *
@@ -33,7 +33,7 @@ static const char *TAG = "Master";
 
 static uint8_t   node_address;
 
-void switch_input_status(can_frame *rx_frame)
+void switch_43_input_status(can_frame *rx_frame)
 {
 	result_t               rc;
 	uint8_t                loop;
@@ -63,17 +63,52 @@ void switch_input_status(can_frame *rx_frame)
 	}
 }
 
+void analog_42_input_status(can_frame *rx_frame)
+{
+	result_t                  rc;
+	can_frame                 tx_frame;
+	union analog_42_status    analog_data;
+	union switch_43_status    switch_data;
+
+	/*
+	 * Pull the data out of the received frame
+	 */
+	analog_data.bytes[0] = rx_frame->data[0];
+	analog_data.bytes[1] = rx_frame->data[1];
+	
+	LOG_D("Analog 0x%x\n\r", analog_data.bitfield.value);
+
+	/*
+	 * Create a tx frame to light LED
+	 */
+	switch_data.bitfield.io_node = 1;
+	switch_data.bitfield.channel = 0;
+
+	if(analog_data.bitfield.value < 0x080) {
+		switch_data.bitfield.status  = 0;
+	} else {
+		switch_data.bitfield.status  = 1;
+	}
+
+	tx_frame.can_id      = SWITCH_43_OUTPUT_STATUS;
+	tx_frame.can_dlc     = 1;
+	tx_frame.data[0]     = switch_data.byte;
+	
+	rc = can_l2_tx_frame(&tx_frame);
+	RC_CHECK_PRINT_VOID("Tx!\n\r");
+}
 
 result_t app_init(uint8_t address, status_handler_t handler)
 {
+	result_t               rc;
 	can_l2_target_t        target;
 	union es_control_id    es_ctrl_id;
 
 	LOG_D("Master app_init(0x%x)\n\r", address);	
-	node_address = address;
+	io_address = address;
 
 	/*
-	 * Register a CAN Frame handler for the Switch Input frames
+	 * Register a CAN Frame handler for the Switch (43) Input frames
 	 */
 	es_ctrl_id.word = 0;
 	es_ctrl_id.fields.es_type = bool_431_input;
