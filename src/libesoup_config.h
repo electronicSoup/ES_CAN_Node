@@ -86,7 +86,7 @@
 /*
  * CAN Bus switches
  */
-//#define SYS_CAN_BUS
+#define SYS_CAN_BUS
 #ifdef SYS_CAN_BUS
 #define SYS_CAN_FRAME_HANDLER_ARRAY_SIZE     10
 #define SYS_CAN_L2_HANDLER_ARRAY_SIZE         5
@@ -96,12 +96,14 @@
 #define SYS_CAN_PING_IDLE_SPREAD         (1000)    // 1,000m Second Spread around
 #define SYS_CAN_PING_IDLE_INTERVAL       (5000)    // A 5,000 mSecond Idle time
 //#define SYS_CAN_DYNAMIC_BAUD_RATE
-#define SYS_CAN_DCNCP
+//#define SYS_CAN_DCNCP
 
-#define SYS_CAN_ISO15765
+//#define SYS_CAN_ISO15765
+#ifdef SYS_CAN_ISO15765
 #define SYS_CAN_ISO15765_REGISTER_ARRAY_SIZE     5
 #define SYS_CAN_ISO15765_MAX_MSG               256
 #define SYS_CAN_ISO15765_LOG
+#endif // SYS_CAN_ISO15765
 #endif // SYS_CAN_BUS
 /*
  * Include a board file
