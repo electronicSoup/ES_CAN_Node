@@ -50,10 +50,12 @@ static boolean   can_connected = FALSE;
 static boolean   app_valid     = FALSE;
 
 static uint8_t          io_address;
-static uint8_t          l3_address;
 #ifdef SYS_CAN_BUS
 static can_baud_rate_t  baud_rate;
 #endif
+#ifdef SYS_CAN_ISO15765
+static uint8_t          l3_address;
+#endif // SYS_CAN_ISO15765
 
 void system_status_handler(status_source_t source, int16_t status, int16_t data);
 
@@ -71,6 +73,7 @@ int main(void)
 	boolean          watchdog = FALSE;
 	uint8_t          node_status;
 	result_t         rc = 0;
+	struct period    period = {mSeconds, 500};
 #ifdef SYS_CAN_BUS
 	can_l2_target_t  target;
 #endif
@@ -78,14 +81,13 @@ int main(void)
 	
 	can_connected = FALSE;
         node_status   = 0x00;
-	
-	delay(mSeconds, 500);
-#if (defined(SYS_SERIAL_LOGGING) && defined(DEBUG_FILE) && (SYS_LOG_LEVEL <= LOG_DEBUG))
+
+	delay(&period);
 	LOG_D("************************\n\r");
 	LOG_D("***   CAN Bus Node   ***\n\r");
 	LOG_D("***   %ldMHz         ***\n\r", sys_clock_freq);
 	LOG_D("************************\n\r");
-#endif
+
 	rc = eeprom_read(EEPROM_NODE_IO_ADDRESS);
 	RC_CHECK_PRINT_CONT("EEPROM Read")
 	io_address = (uint8_t)rc;
@@ -97,17 +99,13 @@ int main(void)
 	}
 	LOG_D("Node IO Address 0x%x\n\r", io_address);
 	if(watchdog) {
-#if (defined(SYS_SERIAL_LOGGING) && (LOG_LEVEL < NO_LOGGING))
 		LOG_E("Watch Dog Timed out!\n\r");
-#endif
 		app_valid = FALSE;
 
 		rc = eeprom_write(EEPROM_NODE_STATUS_ADDR, node_status & ~(NODE_STATUS_APP_VALID));
 		RC_CHECK_PRINT_CONT("Failed to write to EEPROM\n\r");
 	} else {
-#if (defined(SYS_SERIAL_LOGGING) && defined(DEBUG_FILE) && (SYS_LOG_LEVEL <= LOG_DEBUG))
 		LOG_D("Application assumed good!\n\r");
-#endif
 		rc = eeprom_read(EEPROM_NODE_STATUS_ADDR);
 		if(rc >= 0) {
 			node_status = (uint8_t)rc;
@@ -115,7 +113,7 @@ int main(void)
 			app_valid = node_status & NODE_STATUS_APP_VALID;
 		}
 	}
-	rc = delay(mSeconds, 500);
+	rc = delay(&period);
 	RC_CHECK_PRINT_CONT("Failed to delay\n\r");
 
 #ifdef SYS_CAN_BUS
@@ -127,15 +125,21 @@ int main(void)
 		RC_CHECK_PRINT_CONT("Failed to write to EEPROM\n\r");
         }
 #endif
+#ifdef SYS_CAN_ISO15765
 	rc = eeprom_read(EEPROM_NODE_L3_ADDRESS);
 	RC_CHECK_PRINT_CONT("EEPROM Read")
 	l3_address = (uint8_t)rc;
-
-	rc = delay(mSeconds, 500);
+#endif
+	rc = delay(&period);
 	RC_CHECK_PRINT_CONT("Failed to delay()\n\r");
 #ifdef SYS_CAN_BUS
+#ifdef SYS_CAN_ISO15765
  	rc = can_init(baud_rate, l3_address, system_status_handler, normal);
 	RC_CHECK_PRINT_CONT("Failed to initialise CAN Bus\n\r");
+#else
+ 	rc = can_init(baud_rate, system_status_handler, normal);
+	RC_CHECK_PRINT_CONT("Failed to initialise CAN Bus\n\r");
+#endif  // SYS_CAN_ISO15765
 #endif
 	asm ("CLRWDT");
 	
@@ -162,13 +166,7 @@ int main(void)
 	LOG_D("Entering the main loop\n\r");
 	LOG_D("***   %ldMHz         ***\n\r", sys_clock_freq);
 	while(TRUE) {
-		asm ("CLRWDT");
-#ifdef SYS_SW_TIMERS
-		CHECK_TIMERS();
-#endif
-#ifdef SYS_CAN_BUS
-		can_tasks();
-#endif
+		libesoup_tasks();
                 asm ("CLRWDT");
 
 #ifdef SYS_CAN_BUS
@@ -187,7 +185,7 @@ int main(void)
 
 void system_status_handler(status_source_t source, int16_t status, int16_t data)
 {
-	result_t rc;
+	result_t rc  __attribute__((unused));
 	
 	LOG_D("status_handler()\n\r");
 	switch(source) {
@@ -207,6 +205,8 @@ void system_status_handler(status_source_t source, int16_t status, int16_t data)
 				LOG_D("Call App Init as Application is valid\n\r");
 				rc = app_init(io_address, system_status_handler);
 				if(rc < 0) app_valid = FALSE;
+			} else {
+				LOG_E("App is not valid\n\r");
 			}
 
 			break;
