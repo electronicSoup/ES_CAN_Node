@@ -1,5 +1,5 @@
 /**
- * @file dummy_app.c
+ * @file application/sw_input.c
  *
  * @author John Whitmore
  * 
@@ -28,10 +28,8 @@ static const char *TAG = "SWI";
 #include "libesoup/errno.h"
 #include "libesoup/gpio/gpio.h"
 #include "libesoup/comms/can/can.h"
-//#include "libesoup/hardware/eeprom.h"
+#include "libesoup/comms/can/es_control/es_control.h"
 #include "libesoup/status/status.h"
-
-#include "es_tpp.h"
 
 #define BOUNCE_LIMIT 4
 #define NUM_INPUTS   4
@@ -45,24 +43,30 @@ struct sw_input {
 
 static struct sw_input input_switch[NUM_INPUTS];
 
-void switch_input_status_req(can_frame *rx_frame)
+#ifdef SYS_CAN_BUS
+void switch_input_rtr(can_frame *rx_frame)
 {
 	result_t                  rc;
 	uint8_t                   loop;
 	can_frame                 tx_frame;
-	union switch_43_status    switch_data;
+	union es_control_id       es_id;
+	union bool_431            es_bool;
 
 	/*
 	 * Create a frame with the current status of the inputs
 	 */
-	tx_frame.can_id  = SWITCH_43_INPUT_STATUS;
+	es_id.fields.priority = priority_2;
+	es_id.fields.rtr      = 0;
+	es_id.fields.es_type  = bool_431_input;
+	
+	tx_frame.can_id  = es_id.word;
 	tx_frame.can_dlc = 0;
 	
 	for(loop = 0; loop < rx_frame->can_dlc; loop++) {
-		switch_data.byte = rx_frame->data[loop];
-		if(switch_data.bitfield.io_node == node_address) {
-			switch_data.bitfield.status    = input_switch[switch_data.bitfield.channel].reported_state;
-			tx_frame.data[tx_frame.can_dlc++] = switch_data.byte;
+		es_bool.byte = rx_frame->data[loop];
+		if(es_bool.bitfield.node == node_address) {
+			es_bool.bitfield.status    = input_switch[es_bool.bitfield.chan].reported_state;
+			tx_frame.data[tx_frame.can_dlc++] = es_bool.byte;
 		}
 	}
 
@@ -71,16 +75,19 @@ void switch_input_status_req(can_frame *rx_frame)
 		RC_CHECK_PRINT_VOID("Status resp\n\r");
 	}
 }
-
+#endif
 
 result_t app_init(uint8_t address, status_handler_t handler)
 {
 	result_t                  rc;
 	uint8_t                   loop;
+#ifdef SYS_CAN_BUS
 	can_l2_target_t           target;
 	can_frame                 frame;
-	union switch_43_status    switch_data;
-	
+#endif
+	union es_control_id       es_id;
+	union bool_431            es_bool;
+
 	LOG_D("app_init(0x%x)\n\r", address);
 
 	node_address = address;
@@ -88,18 +95,24 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	/*
 	 * Register a CAN Frame handler for the status_request frame
 	 */
-	target.filter  = SWITCH_43_INPUT_STATUS_REQ;
-	target.mask    = CAN_SFF_MASK;
-	target.handler = switch_input_status_req;
+#ifdef SYS_CAN_BUS
+	target.filter  = es_rtr_mask | bool_431_input;
+	target.mask    = es_rtr_mask | es_type_mask;
+	target.handler = switch_input_rtr;
 	rc = frame_dispatch_reg_handler(&target);
 	RC_CHECK
-
+#endif
 	/*
 	 * Create a frame with the current status of the inputs
 	 */
-	frame.can_id                   = SWITCH_43_INPUT_STATUS;
-	frame.can_dlc                  = NUM_INPUTS;
-	switch_data.bitfield.io_node   = node_address;
+#ifdef SYS_CAN_BUS
+	es_id.word            = 0x0000;
+	es_id.fields.priority = priority_3;
+	es_id.fields.es_type  = bool_431_input;
+	frame.can_id          = es_id.word;
+	frame.can_dlc         = NUM_INPUTS;
+#endif
+	es_bool.bitfield.node   = node_address;
 	
 	/*
 	 * Set the GPIO of the input pins
@@ -111,31 +124,45 @@ result_t app_init(uint8_t address, status_handler_t handler)
 		rc = gpio_get(RD0 + loop);
 		RC_CHECK
 		input_switch[loop].reported_state = rc;
-		switch_data.bitfield.channel = loop;
-		switch_data.bitfield.status  = input_switch[loop].reported_state;
-		frame.data[loop]             = switch_data.byte;
+		es_bool.bitfield.chan   = loop;
+		es_bool.bitfield.status = input_switch[loop].reported_state;
+#ifdef SYS_CAN_BUS
+		frame.data[loop]        = es_bool.byte;
+#endif
 	}
 
 	/*
 	 * Send the initial state out on the CAN Bus
 	 */
+#ifdef SYS_CAN_BUS
 	return(can_l2_tx_frame(&frame));
+#else
+	return(0);
+#endif
 }
 
 result_t app_main(void)
 {
 	result_t                  rc;
 	uint8_t                   loop;
+#ifdef SYS_CAN_BUS
 	can_frame                 frame;
+#endif
 	boolean                   current_state;
-	union switch_43_status    switch_data;
+	union es_control_id       es_id;
+	union bool_431            es_bool;
 
 	/*
 	 * Create a frame with the current status of the inputs
 	 */
-	frame.can_id                  = SWITCH_43_INPUT_STATUS;
-	frame.can_dlc                 = 0;
-	switch_data.bitfield.io_node  = node_address;
+#ifdef SYS_CAN_BUS
+	es_id.word            = 0x0000;
+	es_id.fields.priority = priority_3;
+	es_id.fields.es_type  = bool_431_input;
+	frame.can_id          = es_id.word;
+	frame.can_dlc         = 0;
+#endif
+	es_bool.bitfield.node  = node_address;
 
 	for(loop = 0; loop < NUM_INPUTS; loop++) {
 		rc = gpio_get(RD0 + loop);
@@ -149,20 +176,22 @@ result_t app_main(void)
 //				LOG_D("Snd\n\r");
 				input_switch[loop].reported_state = current_state;
 				input_switch[loop].debounce_count = 0;
-				switch_data.bitfield.channel      = loop;
-				switch_data.bitfield.status       = current_state;
-				frame.data[frame.can_dlc++]       = switch_data.byte;
-				LOG_D("Status 0x%x:0x%x:0x%x\n\r", switch_data.bitfield.io_node, switch_data.bitfield.channel, switch_data.bitfield.status);
+				es_bool.bitfield.chan             = loop;
+				es_bool.bitfield.status           = current_state;
+#ifdef SYS_CAN_BUS
+				frame.data[frame.can_dlc++]       = es_bool.byte;
+#endif
+				LOG_D("Status 0x%x:0x%x:0x%x 0x%x\n\r", es_bool.bitfield.node, es_bool.bitfield.chan, es_bool.bitfield.status, (PORTD & 0x07));
 			}
 		} else {
 			input_switch[loop].debounce_count = 0;
 		}
 
 	}
-
+#ifdef SYS_CAN_BUS
 	if(frame.can_dlc > 0) {
 		return(can_l2_tx_frame(&frame));		
 	}
-	
+#endif
 	return(0);
 }
