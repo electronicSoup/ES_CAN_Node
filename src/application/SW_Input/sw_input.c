@@ -65,7 +65,7 @@ void switch_input_rtr(can_frame *rx_frame)
 	for(loop = 0; loop < rx_frame->can_dlc; loop++) {
 		es_bool.byte = rx_frame->data[loop];
 		if(es_bool.bitfield.node == node_address) {
-			es_bool.bitfield.status    = input_switch[es_bool.bitfield.chan].reported_state;
+			es_bool.bitfield.es_bool = input_switch[es_bool.bitfield.chan].reported_state;
 			tx_frame.data[tx_frame.can_dlc++] = es_bool.byte;
 		}
 	}
@@ -125,7 +125,7 @@ result_t app_init(uint8_t address, status_handler_t handler)
 		RC_CHECK
 		input_switch[loop].reported_state = rc;
 		es_bool.bitfield.chan   = loop;
-		es_bool.bitfield.status = input_switch[loop].reported_state;
+		es_bool.bitfield.es_bool = ~input_switch[loop].reported_state;
 #ifdef SYS_CAN_BUS
 		frame.data[loop]        = es_bool.byte;
 #endif
@@ -177,11 +177,11 @@ result_t app_main(void)
 				input_switch[loop].reported_state = current_state;
 				input_switch[loop].debounce_count = 0;
 				es_bool.bitfield.chan             = loop;
-				es_bool.bitfield.status           = current_state;
+				es_bool.bitfield.es_bool             = ~current_state;
 #ifdef SYS_CAN_BUS
 				frame.data[frame.can_dlc++]       = es_bool.byte;
 #endif
-				LOG_D("Status 0x%x:0x%x:0x%x 0x%x\n\r", es_bool.bitfield.node, es_bool.bitfield.chan, es_bool.bitfield.status, (PORTD & 0x07));
+				LOG_D("Status 0x%x:0x%x:0x%x 0x%x\n\r", es_bool.bitfield.node, es_bool.bitfield.chan, es_bool.bitfield.es_bool, (PORTD & 0x07));
 			}
 		} else {
 			input_switch[loop].debounce_count = 0;

@@ -153,6 +153,11 @@ int main(void)
 	rc = frame_dispatch_reg_handler(&target);
 	RC_CHECK_PRINT_CONT("Failed to register frame handler\n\r");
 #endif
+	/*
+	 * The applicaton is only initialised when the CAN Bus becomes active
+	 * If the CAN Bus is not enabled simply call the application init
+	 * function
+	 */
 #ifndef SYS_CAN_BUS
 	if(app_valid) {
 		LOG_D("Call App Init as Application is valid\n\r");

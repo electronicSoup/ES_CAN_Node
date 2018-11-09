@@ -43,11 +43,13 @@ void switch_output_status(can_frame *frame)
 	uint8_t           loop;
 	union bool_431    es_bool;
 	
+	LOG_D("\n\r");
 	for(loop = 0; loop < frame->can_dlc; loop++) {
 		es_bool.byte = frame->data[loop];
+		LOG_D("\t[%d] %d-%d\n\r", loop, es_bool.bitfield.chan, es_bool.bitfield.es_bool);
 		
 		if(es_bool.bitfield.node == io_address) {
-			rc = gpio_set(RD0 + es_bool.bitfield.chan, GPIO_MODE_DIGITAL_OUTPUT, es_bool.bitfield.status);
+			rc = gpio_set(RD0 + es_bool.bitfield.chan, GPIO_MODE_DIGITAL_OUTPUT, es_bool.bitfield.es_bool);
 			RC_CHECK_PRINT_VOID("gpio_set")
 		}
 	}
@@ -75,7 +77,7 @@ void switch_output_rtr(can_frame *rx_frame)
 		if(es_bool.bitfield.node == io_address) {
 			rc = gpio_get(RD0 + es_bool.bitfield.chan);
 			RC_CHECK_PRINT_VOID("gpio_get")
-			es_bool.bitfield.status  = rc;
+			es_bool.bitfield.es_bool  = rc;
 			tx_frame.data[tx_frame.can_dlc++] = es_bool.byte;
 		}
 	}
@@ -102,15 +104,7 @@ result_t app_init(uint8_t address, status_handler_t handler)
 {
 	result_t               rc;
 	uint8_t                loop;
-#ifdef SYS_CAN_BUS
 	can_l2_target_t        target;
-#else
-	/*
-	 * If we're not running with the CAN Bus start a timer to test the
-	 * outputs on the board
-	 */
-	struct timer_req       request;
-#endif
 
 	LOG_D("app_init(0x%x)\n\r", address);	
 	io_address = address;
@@ -118,36 +112,26 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	/*
 	 * Set the GPIO of the output pins
 	 */
-	for(loop = RD0; loop < RD4; loop++) {
+	for(loop = RD0; loop < RD8; loop++) {
 		rc = gpio_set(loop, GPIO_MODE_DIGITAL_OUTPUT, 0);
 	}
 
 	/*
 	 * Register a CAN Frame handler for the status_request frame
 	 */
-#ifdef SYS_CAN_BUS
 	target.filter  = es_rtr_mask | bool_431_output;
 	target.mask    = es_rtr_mask | es_type_mask;
 	target.handler = switch_output_rtr;
 	rc = frame_dispatch_reg_handler(&target);
 	RC_CHECK
-#endif
+
 	/*
 	 * Register a CAN Frame handler for the status update frame
 	 */
-#ifdef SYS_CAN_BUS
 	target.filter  = bool_431_output;
 	target.mask    = es_rtr_mask | es_type_mask;
 	target.handler = switch_output_status;
 	return(frame_dispatch_reg_handler(&target));
-#else
-	request.units = Seconds;
-	request.duration = 10;
-	request.exp_fn = toggle;
-	request.type = repeat;
-	
-	return(sw_timer_start(&request));
-#endif
 }
 
 result_t app_main(void)
