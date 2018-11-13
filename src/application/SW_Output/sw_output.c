@@ -66,8 +66,8 @@ void switch_output_rtr(can_frame *rx_frame)
 	can_frame                 tx_frame;
 
 	es_ctrl_id.word = 0x0000;
-	es_ctrl_id.fields.priority = priority_3;
-	es_ctrl_id.fields.es_type  = bool_431_output;
+	es_ctrl_id.fields.priority = ESC_PRIORITY_3;
+	es_ctrl_id.fields.es_type  = ESC_BOOL_431_OUTPUT;
 	tx_frame.can_id  = es_ctrl_id.word;
 	tx_frame.can_dlc = 0;
 	
@@ -119,8 +119,8 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	/*
 	 * Register a CAN Frame handler for the status_request frame
 	 */
-	target.filter  = es_rtr_mask | bool_431_output;
-	target.mask    = es_rtr_mask | es_type_mask;
+	target.filter  = ESC_RTR_MASK | ESC_BOOL_431_OUTPUT;
+	target.mask    = ESC_RTR_MASK | ESC_TYPE_MASK;
 	target.handler = switch_output_rtr;
 	rc = frame_dispatch_reg_handler(&target);
 	RC_CHECK
@@ -128,8 +128,8 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	/*
 	 * Register a CAN Frame handler for the status update frame
 	 */
-	target.filter  = bool_431_output;
-	target.mask    = es_rtr_mask | es_type_mask;
+	target.filter  = ESC_BOOL_431_OUTPUT;
+	target.mask    = ESC_RTR_MASK | ESC_TYPE_MASK;
 	target.handler = switch_output_status;
 	return(frame_dispatch_reg_handler(&target));
 }

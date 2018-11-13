@@ -55,9 +55,9 @@ void switch_input_rtr(can_frame *rx_frame)
 	/*
 	 * Create a frame with the current status of the inputs
 	 */
-	es_id.fields.priority = priority_2;
+	es_id.fields.priority = ESC_PRIORITY_2;
 	es_id.fields.rtr      = 0;
-	es_id.fields.es_type  = bool_431_input;
+	es_id.fields.es_type  = ESC_BOOL_431_INPUT;
 	
 	tx_frame.can_id  = es_id.word;
 	tx_frame.can_dlc = 0;
@@ -96,8 +96,8 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	 * Register a CAN Frame handler for the status_request frame
 	 */
 #ifdef SYS_CAN_BUS
-	target.filter  = es_rtr_mask | bool_431_input;
-	target.mask    = es_rtr_mask | es_type_mask;
+	target.filter  = ESC_RTR_MASK | ESC_BOOL_431_INPUT;
+	target.mask    = ESC_RTR_MASK | ESC_TYPE_MASK;
 	target.handler = switch_input_rtr;
 	rc = frame_dispatch_reg_handler(&target);
 	RC_CHECK
@@ -107,8 +107,8 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	 */
 #ifdef SYS_CAN_BUS
 	es_id.word            = 0x0000;
-	es_id.fields.priority = priority_3;
-	es_id.fields.es_type  = bool_431_input;
+	es_id.fields.priority = ESC_PRIORITY_3;
+	es_id.fields.es_type  = ESC_BOOL_431_INPUT;
 	frame.can_id          = es_id.word;
 	frame.can_dlc         = NUM_INPUTS;
 #endif
@@ -157,8 +157,8 @@ result_t app_main(void)
 	 */
 #ifdef SYS_CAN_BUS
 	es_id.word            = 0x0000;
-	es_id.fields.priority = priority_3;
-	es_id.fields.es_type  = bool_431_input;
+	es_id.fields.priority = ESC_PRIORITY_3;
+	es_id.fields.es_type  = ESC_BOOL_431_INPUT;
 	frame.can_id          = es_id.word;
 	frame.can_dlc         = 0;
 #endif
