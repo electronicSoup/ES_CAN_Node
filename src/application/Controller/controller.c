@@ -50,27 +50,16 @@ void node1_chan0_bool431_input(uint8_t data)
 	 * Create a frame with the current status of the inputs
 	 */
 	es_ctrl_id.word = 0;
-	es_ctrl_id.fields.es_type = bool_431_output;
-	
+	es_ctrl_id.fields.es_type = ESC_BOOL_431_OUTPUT;
+
 	tx_frame.can_id  = es_ctrl_id.word;
 	tx_frame.can_dlc = 0;
 	
 	if (es_bool_in.bitfield.es_bool) {
-//		es_bool_out.bitfield.node = 0x01;
+		es_bool_out.bitfield.node = 0x01;
 		es_bool_out.bitfield.es_bool = 0b1;
 
 		for (loop = 0; loop < 8; loop++) {
-			es_bool_out.bitfield.node = 0x01;
-			es_bool_out.bitfield.chan = loop;
-			tx_frame.data[tx_frame.can_dlc++] = es_bool_out.byte;
-
-			if(tx_frame.can_dlc == 8) {
-				rc = can_l2_tx_frame(&tx_frame);
-				RC_CHECK_PRINT_VOID("CAN Tx\n\r");
-				tx_frame.can_dlc = 0;
-			}
-
-			es_bool_out.bitfield.node = 0x02;
 			es_bool_out.bitfield.chan = loop;
 			tx_frame.data[tx_frame.can_dlc++] = es_bool_out.byte;
 
@@ -81,21 +70,10 @@ void node1_chan0_bool431_input(uint8_t data)
 			}
 		}
 	} else {
-//		es_bool_out.bitfield.node = 0x01;
+		es_bool_out.bitfield.node = 0x01;
 		es_bool_out.bitfield.es_bool = 0b0;
 
 		for (loop = 0; loop < 8; loop++) {
-			es_bool_out.bitfield.node = 0x01;
-			es_bool_out.bitfield.chan = loop;
-			tx_frame.data[tx_frame.can_dlc++] = es_bool_out.byte;
-
-			if(tx_frame.can_dlc == 8) {
-				rc = can_l2_tx_frame(&tx_frame);
-				RC_CHECK_PRINT_VOID("CAN Tx\n\r");
-				tx_frame.can_dlc = 0;
-			}
-			
-			es_bool_out.bitfield.node = 0x02;
 			es_bool_out.bitfield.chan = loop;
 			tx_frame.data[tx_frame.can_dlc++] = es_bool_out.byte;
 
@@ -129,7 +107,7 @@ void node1_chan1_bool431_input(uint8_t data)
 	 * Create a frame with the current status of the inputs
 	 */
 	es_ctrl_id.word = 0;
-	es_ctrl_id.fields.es_type = bool_431_output;
+	es_ctrl_id.fields.es_type = ESC_BOOL_431_OUTPUT;
 	
 	tx_frame.can_id  = es_ctrl_id.word;
 	tx_frame.can_dlc = 0;
@@ -173,7 +151,7 @@ void node1_chan1_bool431_input(uint8_t data)
 
 void node1_bool431_input(uint8_t data)
 {
-	union bool_431         es_bool_in;
+	union bool_431  es_bool_in;
 
 	es_bool_in.byte = data;
 	
@@ -204,7 +182,6 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	can_l2_target_t        target;
 	union es_control_id    es_ctrl_id;
 
-
 	LOG_D("Master app_init(0x%x)\n\r", address);	
 	node_address = address;
 
@@ -212,9 +189,9 @@ result_t app_init(uint8_t address, status_handler_t handler)
 	 * Register a CAN Frame handler for the Switch (43) Input frames
 	 */
 	es_ctrl_id.word = 0;
-	es_ctrl_id.fields.es_type = bool_431_input;
+	es_ctrl_id.fields.es_type = ESC_BOOL_431_INPUT;
 	target.filter  = es_ctrl_id.word;
-	target.mask    = es_type_mask;
+	target.mask    = ESC_TYPE_MASK;
 	target.handler = process_bool431_input;
 	return(frame_dispatch_reg_handler(&target));
 }
