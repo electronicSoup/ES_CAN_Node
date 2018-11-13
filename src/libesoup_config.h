@@ -92,7 +92,7 @@
 #define SYS_CAN_L2_HANDLER_ARRAY_SIZE         5
 #define SYS_CAN_RX_CIR_BUFFER_SIZE            5
 #define SYS_CAN_PING_PROTOCOL
-#define SYS_CAN_PING_FRAME_ID             0x3FF
+#define SYS_CAN_PING_PROTOCOL_LED
 #define SYS_CAN_PING_IDLE_SPREAD         (1000)    // 1,000m Second Spread around
 #define SYS_CAN_PING_IDLE_INTERVAL       (5000)    // A 5,000 mSecond Idle time
 //#define SYS_CAN_DYNAMIC_BAUD_RATE
