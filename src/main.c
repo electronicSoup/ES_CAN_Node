@@ -73,7 +73,7 @@ int main(void)
 	boolean          watchdog = FALSE;
 	uint8_t          node_status;
 	result_t         rc = 0;
-	struct period    period = {mSeconds, 500};
+//	struct period    period = {mSeconds, 500};
 #ifdef SYS_CAN_BUS
 	can_l2_target_t  target;
 #endif
@@ -82,7 +82,7 @@ int main(void)
 	can_connected = FALSE;
         node_status   = 0x00;
 
-	delay(&period);
+//	delay(&period);
 	LOG_D("************************\n\r");
 	LOG_D("***   CAN Bus Node   ***\n\r");
 	LOG_D("***   %ldMHz         ***\n\r", sys_clock_freq);
@@ -113,8 +113,8 @@ int main(void)
 			app_valid = node_status & NODE_STATUS_APP_VALID;
 		}
 	}
-	rc = delay(&period);
-	RC_CHECK_PRINT_CONT("Failed to delay\n\r");
+//	rc = delay(&period);
+//	RC_CHECK_PRINT_CONT("Failed to delay\n\r");
 
 #ifdef SYS_CAN_BUS
 	baud_rate = eeprom_read(EEPROM_NODE_CAN_BAUD_RATE_ADDR);
@@ -130,8 +130,8 @@ int main(void)
 	RC_CHECK_PRINT_CONT("EEPROM Read")
 	l3_address = (uint8_t)rc;
 #endif
-	rc = delay(&period);
-	RC_CHECK_PRINT_CONT("Failed to delay()\n\r");
+//	rc = delay(&period);
+//	RC_CHECK_PRINT_CONT("Failed to delay()\n\r");
 #ifdef SYS_CAN_BUS
 #ifdef SYS_CAN_ISO15765
  	rc = can_init(baud_rate, l3_address, system_status_handler, normal);
